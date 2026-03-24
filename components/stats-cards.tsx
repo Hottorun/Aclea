@@ -1,6 +1,6 @@
 "use client"
 
-import { Users, UserPlus, CheckCircle, TrendingUp } from "lucide-react"
+import { Users, Clock, CheckCircle, XCircle } from "lucide-react"
 import type { Lead } from "@/lib/types"
 
 interface StatsCardsProps {
@@ -9,9 +9,9 @@ interface StatsCardsProps {
 
 export function StatsCards({ leads }: StatsCardsProps) {
   const total = leads.length
-  const newLeads = leads.filter((l) => l.status === "new").length
-  const converted = leads.filter((l) => l.status === "converted").length
-  const conversionRate = total > 0 ? Math.round((converted / total) * 100) : 0
+  const pending = leads.filter((l) => l.status === "pending").length
+  const approved = leads.filter((l) => l.status === "approved").length
+  const declined = leads.filter((l) => l.status === "declined").length
 
   const stats = [
     {
@@ -22,25 +22,25 @@ export function StatsCards({ leads }: StatsCardsProps) {
       bgColor: "bg-secondary",
     },
     {
-      label: "New Leads",
-      value: newLeads,
-      icon: UserPlus,
-      color: "text-primary",
-      bgColor: "bg-primary/10",
+      label: "Pending Review",
+      value: pending,
+      icon: Clock,
+      color: "text-chart-3",
+      bgColor: "bg-chart-3/10",
     },
     {
-      label: "Converted",
-      value: converted,
+      label: "Approved",
+      value: approved,
       icon: CheckCircle,
       color: "text-primary",
       bgColor: "bg-primary/10",
     },
     {
-      label: "Conversion Rate",
-      value: `${conversionRate}%`,
-      icon: TrendingUp,
-      color: "text-chart-3",
-      bgColor: "bg-chart-3/10",
+      label: "Declined",
+      value: declined,
+      icon: XCircle,
+      color: "text-destructive",
+      bgColor: "bg-destructive/10",
     },
   ]
 

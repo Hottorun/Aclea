@@ -2,25 +2,25 @@
 
 import {
   LayoutDashboard,
-  Flame,
-  Thermometer,
-  Snowflake,
-  Users,
+  Clock,
+  CheckCircle,
+  XCircle,
   Settings,
   MessageSquare,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import type { LeadStatus } from "@/lib/types"
 
 interface AppSidebarProps {
-  activeFilter: string | null
-  onFilterChange: (filter: string | null) => void
+  activeFilter: LeadStatus | null
+  onFilterChange: (filter: LeadStatus | null) => void
 }
 
-const navItems = [
+const navItems: { id: LeadStatus | null; label: string; icon: typeof LayoutDashboard }[] = [
   { id: null, label: "All Leads", icon: LayoutDashboard },
-  { id: "hot", label: "Hot Leads", icon: Flame },
-  { id: "warm", label: "Warm Leads", icon: Thermometer },
-  { id: "cold", label: "Cold Leads", icon: Snowflake },
+  { id: "pending", label: "Pending Review", icon: Clock },
+  { id: "approved", label: "Approved", icon: CheckCircle },
+  { id: "declined", label: "Declined", icon: XCircle },
 ]
 
 export function AppSidebar({ activeFilter, onFilterChange }: AppSidebarProps) {
@@ -35,7 +35,7 @@ export function AppSidebar({ activeFilter, onFilterChange }: AppSidebarProps) {
 
       <nav className="flex-1 space-y-1 p-4">
         <p className="mb-3 px-3 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-          Filters
+          Filter by Status
         </p>
         {navItems.map((item) => {
           const Icon = item.icon
@@ -60,15 +60,11 @@ export function AppSidebar({ activeFilter, onFilterChange }: AppSidebarProps) {
         <div className="my-6 border-t border-border" />
 
         <p className="mb-3 px-3 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-          Management
+          Settings
         </p>
         <button className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-sidebar-accent/50 hover:text-sidebar-foreground">
-          <Users className="h-5 w-5" />
-          Team
-        </button>
-        <button className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-sidebar-accent/50 hover:text-sidebar-foreground">
           <Settings className="h-5 w-5" />
-          Settings
+          Webhook Config
         </button>
       </nav>
 
@@ -79,7 +75,7 @@ export function AppSidebar({ activeFilter, onFilterChange }: AppSidebarProps) {
           </div>
           <div className="flex-1 min-w-0">
             <p className="truncate text-sm font-medium text-sidebar-foreground">Admin User</p>
-            <p className="truncate text-xs text-muted-foreground">admin@leadflow.io</p>
+            <p className="truncate text-xs text-muted-foreground">admin@company.com</p>
           </div>
         </div>
       </div>

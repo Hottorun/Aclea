@@ -7,13 +7,13 @@ import { AppHeader } from "./app-header"
 import { StatsCards } from "./stats-cards"
 import { LeadsGrid } from "./leads-grid"
 import { LeadDetailPanel } from "./lead-detail-panel"
-import type { Lead, LeadTag } from "@/lib/types"
+import type { Lead, LeadStatus } from "@/lib/types"
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
 
 export function Dashboard() {
   const [searchQuery, setSearchQuery] = useState("")
-  const [tagFilter, setTagFilter] = useState<LeadTag | null>(null)
+  const [statusFilter, setStatusFilter] = useState<LeadStatus | null>(null)
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null)
 
   const { data: leads = [], mutate, isValidating } = useSWR<Lead[]>(
@@ -28,8 +28,8 @@ export function Dashboard() {
     mutate()
   }, [mutate])
 
-  const handleFilterChange = (filter: string | null) => {
-    setTagFilter(filter as LeadTag | null)
+  const handleFilterChange = (filter: LeadStatus | null) => {
+    setStatusFilter(filter)
   }
 
   const handleSelectLead = (lead: Lead) => {
@@ -56,22 +56,25 @@ export function Dashboard() {
     }
   }
 
-  const handleDeleteLead = async () => {
+  const handleSendMessage = async (action: "approve" | "decline", message: string) => {
     if (!selectedLead) return
 
-    const response = await fetch(`/api/leads/${selectedLead.id}`, {
-      method: "DELETE",
+    const response = await fetch(`/api/leads/${selectedLead.id}/send`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action, message }),
     })
 
     if (response.ok) {
-      setSelectedLead(null)
+      const result = await response.json()
+      setSelectedLead(result.lead)
       mutate()
     }
   }
 
   return (
     <div className="flex min-h-screen bg-background">
-      <AppSidebar activeFilter={tagFilter} onFilterChange={handleFilterChange} />
+      <AppSidebar activeFilter={statusFilter} onFilterChange={handleFilterChange} />
 
       <div className="flex-1 pl-64">
         <AppHeader
@@ -83,9 +86,9 @@ export function Dashboard() {
 
         <main className="p-6">
           <div className="mb-6">
-            <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
+            <h1 className="text-2xl font-bold text-foreground">WhatsApp Leads</h1>
             <p className="mt-1 text-muted-foreground">
-              Monitor and manage your WhatsApp leads
+              Review and respond to incoming customer inquiries
             </p>
           </div>
 
@@ -94,12 +97,7 @@ export function Dashboard() {
           <div className="mt-8">
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-lg font-semibold text-foreground">
-                Recent Leads
-                {tagFilter && (
-                  <span className="ml-2 text-sm font-normal text-muted-foreground">
-                    (Filtered by: {tagFilter})
-                  </span>
-                )}
+                {statusFilter ? `${statusFilter.charAt(0).toUpperCase() + statusFilter.slice(1)} Leads` : "All Leads"}
               </h2>
               <span className="text-sm text-muted-foreground">
                 {leads.length} total leads
@@ -109,7 +107,7 @@ export function Dashboard() {
             <LeadsGrid
               leads={leads}
               searchQuery={searchQuery}
-              tagFilter={tagFilter}
+              statusFilter={statusFilter}
               selectedLeadId={selectedLead?.id ?? null}
               onSelectLead={handleSelectLead}
             />
@@ -122,7 +120,7 @@ export function Dashboard() {
           lead={selectedLead}
           onClose={handleCloseLead}
           onUpdate={handleUpdateLead}
-          onDelete={handleDeleteLead}
+          onSendMessage={handleSendMessage}
         />
       )}
     </div>

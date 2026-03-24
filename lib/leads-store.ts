@@ -1,4 +1,4 @@
-import type { Lead } from "./types"
+import type { Lead, IncomingLead } from "./types"
 import { mockLeads } from "./mock-data"
 
 // In-memory store for demo purposes
@@ -13,10 +13,18 @@ export function getLeadById(id: string): Lead | undefined {
   return leads.find((lead) => lead.id === id)
 }
 
-export function addLead(lead: Omit<Lead, "id" | "createdAt" | "updatedAt">): Lead {
+export function addLead(incomingLead: IncomingLead): Lead {
   const newLead: Lead = {
-    ...lead,
     id: `lead-${Date.now()}`,
+    name: incomingLead.name,
+    phone: incomingLead.phone,
+    email: incomingLead.email,
+    location: incomingLead.location,
+    workType: incomingLead.workType,
+    conversationSummary: incomingLead.conversationSummary,
+    approveMessage: incomingLead.approveMessage,
+    declineMessage: incomingLead.declineMessage,
+    status: "pending",
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   }

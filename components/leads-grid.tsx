@@ -1,12 +1,12 @@
 "use client"
 
 import { LeadCard } from "./lead-card"
-import type { Lead, LeadTag } from "@/lib/types"
+import type { Lead, LeadStatus } from "@/lib/types"
 
 interface LeadsGridProps {
   leads: Lead[]
   searchQuery: string
-  tagFilter: LeadTag | null
+  statusFilter: LeadStatus | null
   selectedLeadId: string | null
   onSelectLead: (lead: Lead) => void
 }
@@ -14,7 +14,7 @@ interface LeadsGridProps {
 export function LeadsGrid({
   leads,
   searchQuery,
-  tagFilter,
+  statusFilter,
   selectedLeadId,
   onSelectLead,
 }: LeadsGridProps) {
@@ -23,11 +23,14 @@ export function LeadsGrid({
       !searchQuery ||
       lead.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       lead.phone.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      lead.message.toLowerCase().includes(searchQuery.toLowerCase())
+      lead.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      lead.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      lead.workType.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      lead.conversationSummary.toLowerCase().includes(searchQuery.toLowerCase())
 
-    const matchesTag = !tagFilter || lead.tags.includes(tagFilter)
+    const matchesStatus = !statusFilter || lead.status === statusFilter
 
-    return matchesSearch && matchesTag
+    return matchesSearch && matchesStatus
   })
 
   if (filteredLeads.length === 0) {
@@ -50,7 +53,7 @@ export function LeadsGrid({
         </div>
         <h3 className="mt-4 text-lg font-medium text-foreground">No leads found</h3>
         <p className="mt-1 text-sm text-muted-foreground">
-          {searchQuery || tagFilter
+          {searchQuery || statusFilter
             ? "Try adjusting your search or filters"
             : "New leads from WhatsApp will appear here"}
         </p>

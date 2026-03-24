@@ -18,7 +18,7 @@ export function AppHeader({ searchQuery, onSearchChange, onRefresh, isRefreshing
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <input
             type="text"
-            placeholder="Search leads by name, phone, or message..."
+            placeholder="Search by name, phone, email, location, work type..."
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
             className="h-10 w-full rounded-lg border border-input bg-secondary pl-10 pr-4 text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring"

@@ -1,8 +1,8 @@
 "use client"
 
-import { Clock, User, MessageSquare } from "lucide-react"
+import { Clock, MapPin, Briefcase, Mail, Phone } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
-import type { Lead, LeadStatus, LeadTag } from "@/lib/types"
+import type { Lead, LeadStatus } from "@/lib/types"
 import { cn } from "@/lib/utils"
 
 interface LeadCardProps {
@@ -12,20 +12,9 @@ interface LeadCardProps {
 }
 
 const statusConfig: Record<LeadStatus, { label: string; className: string }> = {
-  new: { label: "New", className: "bg-primary/20 text-primary border-primary/30" },
-  contacted: { label: "Contacted", className: "bg-chart-2/20 text-chart-2 border-chart-2/30" },
-  qualified: { label: "Qualified", className: "bg-chart-3/20 text-chart-3 border-chart-3/30" },
-  converted: { label: "Converted", className: "bg-primary/20 text-primary border-primary/30" },
-  lost: { label: "Lost", className: "bg-destructive/20 text-destructive border-destructive/30" },
-}
-
-const tagConfig: Record<LeadTag, { label: string; className: string }> = {
-  hot: { label: "Hot", className: "bg-destructive/20 text-destructive" },
-  warm: { label: "Warm", className: "bg-chart-3/20 text-chart-3" },
-  cold: { label: "Cold", className: "bg-chart-2/20 text-chart-2" },
-  vip: { label: "VIP", className: "bg-chart-4/20 text-chart-4" },
-  "follow-up": { label: "Follow-up", className: "bg-chart-5/20 text-chart-5" },
-  urgent: { label: "Urgent", className: "bg-destructive/20 text-destructive" },
+  pending: { label: "Pending Review", className: "bg-chart-3/20 text-chart-3 border-chart-3/30" },
+  approved: { label: "Approved", className: "bg-primary/20 text-primary border-primary/30" },
+  declined: { label: "Declined", className: "bg-destructive/20 text-destructive border-destructive/30" },
 }
 
 function formatTimeAgo(dateString: string): string {
@@ -46,13 +35,13 @@ export function LeadCard({ lead, onClick, isSelected }: LeadCardProps) {
     <button
       onClick={onClick}
       className={cn(
-        "w-full rounded-xl border bg-card p-4 text-left transition-all hover:border-primary/50",
+        "w-full rounded-xl border bg-card p-5 text-left transition-all hover:border-primary/50",
         isSelected ? "border-primary ring-1 ring-primary" : "border-border"
       )}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3 min-w-0">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-secondary text-sm font-medium text-foreground">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-secondary text-sm font-semibold text-foreground">
             {lead.name
               .split(" ")
               .map((n) => n[0])
@@ -61,8 +50,11 @@ export function LeadCard({ lead, onClick, isSelected }: LeadCardProps) {
               .toUpperCase()}
           </div>
           <div className="min-w-0">
-            <h3 className="truncate font-medium text-card-foreground">{lead.name}</h3>
-            <p className="truncate text-sm text-muted-foreground">{lead.phone}</p>
+            <h3 className="truncate font-semibold text-card-foreground">{lead.name}</h3>
+            <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+              <Briefcase className="h-3.5 w-3.5" />
+              <span className="truncate">{lead.workType}</span>
+            </div>
           </div>
         </div>
         <Badge variant="outline" className={cn("shrink-0 text-xs", status.className)}>
@@ -70,36 +62,30 @@ export function LeadCard({ lead, onClick, isSelected }: LeadCardProps) {
         </Badge>
       </div>
 
-      <div className="mt-3 flex items-start gap-2">
-        <MessageSquare className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
-        <p className="line-clamp-2 text-sm text-muted-foreground">{lead.message}</p>
-      </div>
+      <p className="mt-3 line-clamp-2 text-sm text-muted-foreground">
+        {lead.conversationSummary}
+      </p>
 
-      <div className="mt-3 flex flex-wrap gap-1.5">
-        {lead.tags.map((tag) => {
-          const config = tagConfig[tag]
-          return (
-            <span
-              key={tag}
-              className={cn("rounded-md px-2 py-0.5 text-xs font-medium", config.className)}
-            >
-              {config.label}
-            </span>
-          )
-        })}
+      <div className="mt-4 flex flex-wrap gap-3 text-xs text-muted-foreground">
+        <div className="flex items-center gap-1.5">
+          <Phone className="h-3.5 w-3.5" />
+          <span>{lead.phone}</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <Mail className="h-3.5 w-3.5" />
+          <span className="truncate max-w-[150px]">{lead.email}</span>
+        </div>
       </div>
 
       <div className="mt-3 flex items-center justify-between text-xs text-muted-foreground">
         <div className="flex items-center gap-1.5">
+          <MapPin className="h-3.5 w-3.5" />
+          {lead.location}
+        </div>
+        <div className="flex items-center gap-1.5">
           <Clock className="h-3.5 w-3.5" />
           {formatTimeAgo(lead.createdAt)}
         </div>
-        {lead.assignedTo && (
-          <div className="flex items-center gap-1.5">
-            <User className="h-3.5 w-3.5" />
-            {lead.assignedTo}
-          </div>
-        )}
       </div>
     </button>
   )

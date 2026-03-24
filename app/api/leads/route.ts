@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { getLeads, addLead } from "@/lib/leads-store"
-import type { LeadStatus, LeadTag } from "@/lib/types"
+import type { IncomingLead } from "@/lib/types"
 
 export async function GET() {
   const leads = getLeads()
@@ -9,13 +9,17 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json()
+    const body: IncomingLead = await request.json()
 
-    const { name, phone, message, source, tags } = body
+    const { name, phone, email, location, workType, conversationSummary, approveMessage, declineMessage } = body
 
-    if (!name || !phone || !message) {
+    // Validate required fields
+    if (!name || !phone || !email || !location || !workType || !conversationSummary || !approveMessage || !declineMessage) {
       return NextResponse.json(
-        { error: "Name, phone, and message are required" },
+        { 
+          error: "Missing required fields",
+          required: ["name", "phone", "email", "location", "workType", "conversationSummary", "approveMessage", "declineMessage"]
+        },
         { status: 400 }
       )
     }
@@ -23,12 +27,12 @@ export async function POST(request: Request) {
     const newLead = addLead({
       name,
       phone,
-      message,
-      source: source || "WhatsApp API",
-      status: "new" as LeadStatus,
-      tags: (tags || []) as LeadTag[],
-      assignedTo: null,
-      notes: [],
+      email,
+      location,
+      workType,
+      conversationSummary,
+      approveMessage,
+      declineMessage,
     })
 
     return NextResponse.json(newLead, { status: 201 })
