@@ -41,6 +41,18 @@ to run:
 - pnpm install
 - pnpm dev
 
+need to do:
+How Auto-Delete Works
+The auto-delete feature:
+- Triggers: When the dashboard loads, it checks if autoDeleteDeclinedDays > 0 in settings
+- Behavior: Deletes all leads with status "declined" that are older than X days
+- Requirements: 
+  - Need a real Supabase connection (not mock data)
+  - The API endpoint /api/cron/auto-delete needs to be called
+For production, you should set up a cron job to call this endpoint daily:
+# Example cron job (run daily at midnight)
+curl -X POST https://your-domain.com/api/cron/auto-delete
+
 create .env file
 into it put:
 `NEXT_PUBLIC_SUPABASE_URL`
