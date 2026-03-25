@@ -7,78 +7,427 @@ import {
   XCircle,
   Settings,
   MessageSquare,
+  Star,
+  Users,
+  UserPlus,
+  UserCheck,
+  Heart,
+  Filter,
+  LogOut,
+  Shield,
+  RefreshCw,
+  Bell,
+  Menu,
+  X,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
-import type { LeadStatus } from "@/lib/types"
+import type { LeadStatus, CustomerType, RatingFilter, Lead } from "@/lib/types"
+import { useRouter } from "next/navigation"
+import { useState } from "react"
+
+interface User {
+  id: string
+  email: string
+  name: string
+  role: "admin" | "user"
+}
 
 interface AppSidebarProps {
   activeFilter: LeadStatus | null
   onFilterChange: (filter: LeadStatus | null) => void
+  customerTypeFilter: CustomerType
+  onCustomerTypeFilterChange: (type: CustomerType) => void
+  ratingFilter: RatingFilter
+  onRatingFilterChange: (rating: RatingFilter) => void
+  onOpenSettings: () => void
+  onOpenUserManagement: () => void
+  user?: User | null
+  leads: Lead[]
+  onRefresh: () => void
+  mobileMenuOpen: boolean
+  onMobileMenuOpen: () => void
+  onMobileMenuClose: () => void
 }
 
-const navItems: { id: LeadStatus | null; label: string; icon: typeof LayoutDashboard }[] = [
-  { id: null, label: "All Leads", icon: LayoutDashboard },
-  { id: "pending", label: "Pending Review", icon: Clock },
-  { id: "approved", label: "Approved", icon: CheckCircle },
-  { id: "declined", label: "Declined", icon: XCircle },
+const statusItems: { id: LeadStatus | null; label: string; icon: typeof LayoutDashboard; color: string }[] = [
+  { id: null, label: "All Leads", icon: LayoutDashboard, color: "" },
+  { id: "pending", label: "Pending Review", icon: Clock, color: "text-chart-3" },
+  { id: "approved", label: "Approved", icon: CheckCircle, color: "text-primary" },
+  { id: "declined", label: "Declined", icon: XCircle, color: "text-destructive" },
+  { id: "unrelated", label: "Unrelated", icon: Filter, color: "text-muted-foreground" },
 ]
 
-export function AppSidebar({ activeFilter, onFilterChange }: AppSidebarProps) {
+const customerTypeItems: { id: CustomerType; label: string; icon: typeof Users }[] = [
+  { id: "all", label: "All Customers", icon: Users },
+  { id: "first-time", label: "First-time", icon: UserPlus },
+  { id: "returning", label: "Returning", icon: UserCheck },
+  { id: "loyal", label: "Loyal (3+)", icon: Heart },
+]
+
+const ratingItems: { id: RatingFilter; label: string }[] = [
+  { id: "all", label: "All Ratings" },
+  { id: 5, label: "5 Stars" },
+  { id: 4, label: "4 Stars" },
+  { id: 3, label: "3 Stars" },
+  { id: 2, label: "2 Stars" },
+  { id: 1, label: "1 Star" },
+]
+
+export function AppSidebar({ 
+  activeFilter, 
+  onFilterChange,
+  customerTypeFilter,
+  onCustomerTypeFilterChange,
+  ratingFilter,
+  onRatingFilterChange,
+  onOpenSettings,
+  onOpenUserManagement,
+  user,
+  leads,
+  onRefresh,
+  mobileMenuOpen,
+  onMobileMenuOpen,
+  onMobileMenuClose,
+}: AppSidebarProps) {
+  const router = useRouter()
+  const [isRefreshing, setIsRefreshing] = useState(false)
+  const [showNotifications, setShowNotifications] = useState(false)
+
+  const handleLogoClick = () => {
+    setIsRefreshing(true)
+    onRefresh()
+    setTimeout(() => setIsRefreshing(false), 500)
+  }
+
+  const getNotifications = () => {
+    const lastLoginTime = localStorage.getItem("lastLoginTime")
+    if (!lastLoginTime) return { count: 0, items: [] }
+    
+    const loginDate = new Date(lastLoginTime)
+    const newLeads = leads.filter(lead => new Date(lead.createdAt) > loginDate)
+    
+    if (newLeads.length === 0) return { count: 0, items: [] }
+    
+    const items: { count: number; message: string }[] = []
+    const approved = newLeads.filter(l => l.autoApproved)
+    const whatsapp = newLeads.filter(l => l.contactPlatform === "whatsapp")
+    const email = newLeads.filter(l => l.contactPlatform === "email")
+    
+    if (approved.length > 0) items.push({ count: approved.length, message: "Auto-approved" })
+    if (whatsapp.length > 0) items.push({ count: whatsapp.length, message: "New WhatsApp" })
+    if (email.length > 0) items.push({ count: email.length, message: "New Email" })
+    
+    return { count: items.length, items }
+  }
+
+  const notificationData = getNotifications()
+
+  const handleLogout = async () => {
+    await fetch("/api/auth", { method: "DELETE" })
+    router.push("/login")
+    router.refresh()
+  }
+
   return (
-    <aside className="fixed left-0 top-0 z-40 flex h-screen w-64 flex-col border-r border-border bg-sidebar">
-      <div className="flex h-16 items-center gap-3 border-b border-border px-6">
-        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
-          <MessageSquare className="h-5 w-5 text-primary-foreground" />
-        </div>
-        <span className="text-lg font-semibold text-sidebar-foreground">LeadFlow</span>
-      </div>
+    <>
+      {/* Mobile overlay */}
+      {mobileMenuOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          onClick={onMobileMenuClose}
+        />
+      )}
 
-      <nav className="flex-1 space-y-1 p-4">
-        <p className="mb-3 px-3 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-          Filter by Status
-        </p>
-        {navItems.map((item) => {
-          const Icon = item.icon
-          const isActive = activeFilter === item.id
-          return (
-            <button
-              key={item.label}
-              onClick={() => onFilterChange(item.id)}
-              className={cn(
-                "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
-                isActive
-                  ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                  : "text-muted-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
-              )}
-            >
-              <Icon className="h-5 w-5" />
-              {item.label}
+      {/* Mobile sidebar */}
+      <aside className={cn(
+        "fixed left-0 top-0 z-50 flex h-screen w-64 flex-col border-r border-border bg-sidebar transition-transform duration-300 lg:hidden",
+        mobileMenuOpen ? "translate-x-0" : "-translate-x-full"
+      )}>
+        <div className="flex h-16 items-center justify-between gap-3 border-b border-border px-6">
+          <button 
+            onClick={handleLogoClick}
+            className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary cursor-pointer transition-transform active:scale-95 hover:brightness-110"
+          >
+            {isRefreshing ? (
+              <RefreshCw className="h-5 w-5 text-primary-foreground animate-spin" />
+            ) : (
+              <MessageSquare className="h-5 w-5 text-primary-foreground" />
+            )}
+          </button>
+          <span className="text-lg font-semibold text-sidebar-foreground">LeadFlow</span>
+          <button 
+            onClick={onMobileMenuClose}
+            className="p-2 rounded-lg hover:bg-sidebar-accent/50 cursor-pointer"
+          >
+            <X className="h-5 w-5 text-sidebar-foreground" />
+          </button>
+        </div>
+        {/* Mobile content */}
+        <nav className="flex-1 overflow-y-auto p-4">
+          <p className="mb-3 px-3 text-xs font-medium uppercase tracking-wider text-muted-foreground">Status</p>
+          {statusItems.map((item) => {
+            const Icon = item.icon
+            const isActive = activeFilter === item.id
+            return (
+              <button key={item.label} onClick={() => { onFilterChange(item.id); onMobileMenuClose(); }} className={cn("flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors cursor-pointer", isActive ? "bg-sidebar-accent text-sidebar-accent-foreground" : "text-muted-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-foreground")}>
+                <Icon className={cn("h-5 w-5", item.color)} />
+                {item.label}
+              </button>
+            )
+          })}
+          <div className="my-4 border-t border-border" />
+          <p className="mb-3 px-3 text-xs font-medium uppercase tracking-wider text-muted-foreground">Customer Type</p>
+          {customerTypeItems.map((item) => {
+            const Icon = item.icon
+            const isActive = customerTypeFilter === item.id
+            return (
+              <button key={item.id} onClick={() => { onCustomerTypeFilterChange(item.id); onMobileMenuClose(); }} className={cn("flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors cursor-pointer", isActive ? "bg-sidebar-accent text-sidebar-accent-foreground" : "text-muted-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-foreground")}>
+                <Icon className="h-5 w-5" />
+                {item.label}
+              </button>
+            )
+          })}
+          <div className="my-4 border-t border-border" />
+          <p className="mb-3 px-3 text-xs font-medium uppercase tracking-wider text-muted-foreground">Rating</p>
+          {ratingItems.map((item) => {
+            const isActive = ratingFilter === item.id
+            return (
+              <button key={item.id.toString()} onClick={() => { onRatingFilterChange(item.id); onMobileMenuClose(); }} className={cn("flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors cursor-pointer", isActive ? "bg-sidebar-accent text-sidebar-accent-foreground" : "text-muted-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-foreground")}>
+                {item.id === "all" ? <Star className="h-5 w-5" /> : (
+                  <div className="flex items-center gap-0.5">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <Star key={i} className={cn("h-3 w-3", i < (item.id as number) ? "fill-primary text-primary" : "text-muted-foreground/30")} />
+                    ))}
+                  </div>
+                )}
+                {item.id === "all" && item.label}
+              </button>
+            )
+          })}
+          <div className="my-4 border-t border-border" />
+          <button onClick={() => { onOpenSettings(); onMobileMenuClose(); }} className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors cursor-pointer hover:bg-sidebar-accent/50 hover:text-sidebar-foreground">
+            <Settings className="h-5 w-5" />
+            Settings
+          </button>
+          {user?.role === "admin" && (
+            <button onClick={() => { onOpenUserManagement(); onMobileMenuClose(); }} className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors cursor-pointer hover:bg-sidebar-accent/50 hover:text-sidebar-foreground">
+              <Users className="h-5 w-5" />
+              User Management
             </button>
-          )
-        })}
-
-        <div className="my-6 border-t border-border" />
-
-        <p className="mb-3 px-3 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-          Settings
-        </p>
-        <button className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-sidebar-accent/50 hover:text-sidebar-foreground">
-          <Settings className="h-5 w-5" />
-          Webhook Config
-        </button>
-      </nav>
-
-      <div className="border-t border-border p-4">
-        <div className="flex items-center gap-3 rounded-lg bg-secondary/50 p-3">
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-sm font-medium text-primary-foreground">
-            A
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="truncate text-sm font-medium text-sidebar-foreground">Admin User</p>
-            <p className="truncate text-xs text-muted-foreground">admin@company.com</p>
+          )}
+        </nav>
+        <div className="border-t border-border p-4">
+          <div className="flex items-center gap-3 rounded-lg bg-secondary/50 p-3">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-sm font-medium text-primary-foreground">
+              {user?.name?.charAt(0) || "A"}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="truncate text-sm font-medium text-sidebar-foreground">
+                {user?.name || "Admin User"}
+              </p>
+              <p className="truncate text-xs text-muted-foreground">
+                {user?.email || "admin@leadflow.com"}
+              </p>
+            </div>
+            <button onClick={handleLogout} className="p-2 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors cursor-pointer" title="Sign out">
+              <LogOut className="h-4 w-4" />
+            </button>
           </div>
         </div>
+      </aside>
+
+      {/* Desktop sidebar */}
+      <aside className="fixed left-0 top-0 z-40 hidden lg:flex h-screen w-64 flex-col border-r border-border bg-sidebar">
+        <div className="flex h-16 items-center gap-3 border-b border-border px-6">
+          <button 
+            onClick={handleLogoClick}
+            className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary cursor-pointer transition-transform active:scale-95 hover:brightness-110"
+          >
+            {isRefreshing ? (
+              <RefreshCw className="h-5 w-5 text-primary-foreground animate-spin" />
+            ) : (
+              <MessageSquare className="h-5 w-5 text-primary-foreground" />
+            )}
+          </button>
+          <button 
+            onClick={handleLogoClick}
+            className="text-lg font-semibold text-sidebar-foreground cursor-pointer hover:underline underline-offset-4 transition-all active:scale-95"
+          >
+            LeadFlow
+          </button>
+          <div className="flex-1" />
+          <div className="relative">
+            <button
+              onClick={() => setShowNotifications(!showNotifications)}
+              className={cn(
+                "relative p-2 rounded-lg border border-border hover:bg-sidebar-accent/50 transition-colors cursor-pointer",
+              showNotifications && "bg-sidebar-accent"
+            )}
+          >
+            <Bell className="h-5 w-5 text-sidebar-foreground" />
+            {notificationData.count > 0 && (
+              <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center font-medium">
+                {notificationData.count > 9 ? "9+" : notificationData.count}
+              </span>
+            )}
+          </button>
+          {showNotifications && (
+            <div className="absolute left-0 top-full mt-2 w-64 rounded-lg border border-border bg-popover shadow-lg z-50 p-3">
+              <h4 className="font-semibold text-sm mb-2">Activity Summary</h4>
+              {notificationData.items.length === 0 ? (
+                <p className="text-xs text-muted-foreground">No new activity</p>
+              ) : (
+                <div className="space-y-2">
+                  {notificationData.items.map((item, i) => (
+                    <div key={i} className="flex items-center justify-between text-sm">
+                      <span>{item.message}</span>
+                      <span className="font-medium">{item.count}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
-    </aside>
+
+        <nav className="flex-1 overflow-y-auto p-4">
+          {/* Status Filter */}
+          <p className="mb-3 px-3 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+            Status
+          </p>
+          {statusItems.map((item) => {
+            const Icon = item.icon
+            const isActive = activeFilter === item.id
+            return (
+              <button
+                key={item.label}
+                onClick={() => onFilterChange(item.id)}
+                className={cn(
+                  "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors cursor-pointer",
+                  isActive
+                    ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                    : "text-muted-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
+                )}
+              >
+                <Icon className={cn("h-5 w-5", item.color)} />
+                {item.label}
+              </button>
+            )
+          })}
+
+          <div className="my-4 border-t border-border" />
+
+          {/* Customer Type Filter */}
+          <p className="mb-3 px-3 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+            Customer Type
+          </p>
+          {customerTypeItems.map((item) => {
+            const Icon = item.icon
+            const isActive = customerTypeFilter === item.id
+            return (
+              <button
+                key={item.id}
+                onClick={() => onCustomerTypeFilterChange(item.id)}
+                className={cn(
+                  "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors cursor-pointer",
+                  isActive
+                    ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                    : "text-muted-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
+                )}
+              >
+                <Icon className="h-5 w-5" />
+                {item.label}
+              </button>
+            )
+          })}
+
+          <div className="my-4 border-t border-border" />
+
+          {/* Rating Filter */}
+          <p className="mb-3 px-3 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+            Rating
+          </p>
+          {ratingItems.map((item) => {
+            const isActive = ratingFilter === item.id
+            return (
+              <button
+                key={item.id.toString()}
+                onClick={() => onRatingFilterChange(item.id)}
+                className={cn(
+                  "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors cursor-pointer",
+                  isActive
+                    ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                    : "text-muted-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
+                )}
+              >
+                {item.id === "all" ? (
+                  <Star className="h-5 w-5" />
+                ) : (
+                  <div className="flex items-center gap-0.5">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <Star
+                        key={i}
+                        className={cn(
+                          "h-3 w-3",
+                          i < (item.id as number) ? "fill-primary text-primary" : "text-muted-foreground/30"
+                        )}
+                      />
+                    ))}
+                  </div>
+                )}
+                {item.id === "all" && item.label}
+              </button>
+            )
+          })}
+
+          <div className="my-4 border-t border-border" />
+
+          {/* Settings */}
+          <p className="mb-3 px-3 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+            Settings
+          </p>
+          <button 
+            onClick={onOpenSettings}
+            className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors cursor-pointer hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
+          >
+            <Settings className="h-5 w-5" />
+            Settings
+          </button>
+          {user?.role === "admin" && (
+            <button 
+              onClick={onOpenUserManagement}
+              className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors cursor-pointer hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
+            >
+              <Users className="h-5 w-5" />
+              User Management
+            </button>
+          )}
+        </nav>
+
+        <div className="border-t border-border p-4">
+          <div className="flex items-center gap-3 rounded-lg bg-secondary/50 p-3">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-sm font-medium text-primary-foreground">
+              {user?.name?.charAt(0) || "A"}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="truncate text-sm font-medium text-sidebar-foreground">
+                {user?.name || "Admin User"}
+              </p>
+              <p className="truncate text-xs text-muted-foreground">
+                {user?.email || "admin@leadflow.com"}
+              </p>
+            </div>
+            <button
+              onClick={handleLogout}
+              className="p-2 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+              title="Sign out"
+            >
+              <LogOut className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      </aside>
+    </>
   )
 }

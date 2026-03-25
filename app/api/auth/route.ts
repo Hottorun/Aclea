@@ -1,0 +1,121 @@
+import { NextResponse } from "next/server"
+import { cookies } from "next/headers"
+import { createClient, SupabaseClient } from "@supabase/supabase-js"
+import bcrypt from "bcryptjs"
+
+interface User {
+  id: string
+  email: string
+  name: string
+  role: "admin" | "user"
+}
+
+interface DbUser extends User {
+  password: string
+}
+
+function getSupabase(): SupabaseClient | null {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  
+  if (!supabaseUrl || !supabaseKey) {
+    return null
+  }
+  
+  return createClient(supabaseUrl, supabaseKey)
+}
+
+async function verifyPassword(password: string, hashedPassword: string): Promise<boolean> {
+  return bcrypt.compare(password, hashedPassword)
+}
+
+async function hashPassword(password: string): Promise<string> {
+  return bcrypt.hash(password, 12)
+}
+
+export async function POST(request: Request) {
+  try {
+    const body = await request.json()
+    const { email, password } = body
+
+    if (!email || !password) {
+      return NextResponse.json(
+        { error: "Email and password are required" },
+        { status: 400 }
+      )
+    }
+
+    const supabase = getSupabase()
+    
+    if (!supabase) {
+      return NextResponse.json(
+        { error: "Authentication not configured. Please contact administrator." },
+        { status: 500 }
+      )
+    }
+
+    const { data, error } = await supabase
+      .from("users")
+      .select("id, email, name, role, password")
+      .ilike("email", email)
+      .limit(1)
+    
+    if (error || !data || data.length === 0) {
+      return NextResponse.json(
+        { error: "Invalid email or password" },
+        { status: 401 }
+      )
+    }
+    
+    const userData = data[0]
+    const passwordValid = await verifyPassword(password, userData.password)
+    
+    if (!passwordValid) {
+      return NextResponse.json(
+        { error: "Invalid email or password" },
+        { status: 401 }
+      )
+    }
+    
+    const user: User = { id: userData.id, email: userData.email, name: userData.name, role: userData.role }
+
+    const cookieStore = await cookies()
+    cookieStore.set("auth_token", JSON.stringify(user), {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 60 * 60 * 24 * 7,
+      path: "/",
+    })
+
+    return NextResponse.json({ user })
+  } catch (err) {
+    console.error("Login error:", err)
+    return NextResponse.json(
+      { error: "Login failed" },
+      { status: 500 }
+    )
+  }
+}
+
+export async function DELETE() {
+  const cookieStore = await cookies()
+  cookieStore.delete("auth_token")
+  return NextResponse.json({ success: true })
+}
+
+export async function GET() {
+  const cookieStore = await cookies()
+  const token = cookieStore.get("auth_token")
+
+  if (!token) {
+    return NextResponse.json({ user: null })
+  }
+
+  try {
+    const user = JSON.parse(token.value)
+    return NextResponse.json({ user })
+  } catch {
+    return NextResponse.json({ user: null })
+  }
+}

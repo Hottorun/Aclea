@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { getLeadById, updateLead, deleteLead } from "@/lib/leads-store"
+import { getLeadById, updateLead, deleteLead } from "@/lib/supabase"
 
 export async function GET(
   request: Request,

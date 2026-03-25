@@ -1,19 +1,27 @@
 import { NextResponse } from "next/server"
-import { getLeads, addLead } from "@/lib/supabase"
-import type { IncomingLead } from "@/lib/types"
+import { getLeads, addLead, getSettings, updateLead } from "@/lib/supabase"
+import type { IncomingLead, LeadStatus } from "@/lib/types"
 
 export async function GET() {
-  const leads = await getLeads()
-  return NextResponse.json(leads)
+  try {
+    const leads = await getLeads()
+    return NextResponse.json(leads)
+  } catch (error) {
+    console.error("API Error:", error)
+    return NextResponse.json({ error: "Failed to fetch leads" }, { status: 500 })
+  }
 }
 
 export async function POST(request: Request) {
   try {
-    const body: IncomingLead = await request.json()
+    const body = await request.json()
 
-    const { name, phone, email, location, workType, conversationSummary, approveMessage, declineMessage, rating, ratingReason } = body
+    const { 
+      name, phone, email, location, workType, conversationSummary, 
+      approveMessage, declineMessage, rating, ratingReason, 
+      contactPlatform, status, autoApproved, originalMessage 
+    } = body
 
-    // Validate required fields
     if (!name || !phone || !email || !location || !workType || !conversationSummary || !approveMessage || !declineMessage || !rating || !ratingReason) {
       return NextResponse.json(
         { 
@@ -24,12 +32,33 @@ export async function POST(request: Request) {
       )
     }
 
-    // Validate rating is between 1-5
     if (rating < 1 || rating > 5) {
       return NextResponse.json(
         { error: "Rating must be between 1 and 5" },
         { status: 400 }
       )
+    }
+
+    const validStatuses: LeadStatus[] = ["pending", "approved", "declined", "unrelated"]
+    if (status && !validStatuses.includes(status)) {
+      return NextResponse.json(
+        { error: "Invalid status. Must be one of: pending, approved, declined, unrelated" },
+        { status: 400 }
+      )
+    }
+
+    let initialStatus: LeadStatus = status || "pending"
+    let wasAutoApproved = false
+
+    const settings = await getSettings()
+
+    if (settings.autoApproveEnabled && rating >= settings.autoApproveMinRating) {
+      initialStatus = "approved"
+      wasAutoApproved = true
+    }
+
+    if (settings.autoDeclineUnrelated && status === "unrelated") {
+      initialStatus = "unrelated"
     }
 
     const newLead = await addLead({
@@ -43,6 +72,12 @@ export async function POST(request: Request) {
       declineMessage,
       rating,
       ratingReason,
+      contactPlatform: contactPlatform || "whatsapp",
+      status: initialStatus,
+      leadCount: 1,
+      isLoyal: false,
+      autoApproved: wasAutoApproved,
+      originalMessage: originalMessage || "",
     })
 
     if (!newLead) {
@@ -52,7 +87,7 @@ export async function POST(request: Request) {
       )
     }
 
-    return NextResponse.json(newLead, { status: 201 })
+    return NextResponse.json(newLead, { status: 201, autoApproved: wasAutoApproved })
   } catch {
     return NextResponse.json(
       { error: "Invalid request body" },
