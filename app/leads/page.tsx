@@ -1,7 +1,8 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import useSWR from "swr"
+import { useRouter } from "next/navigation"
 import { AppHeader } from "@/components/app-header"
 import { LeadDetailPanel } from "@/components/lead-detail-panel"
 import { Search, Mail, MessageCircle, Plus, Heart, Clock, ChevronRight, ArrowUpDown, X, LayoutGrid, List } from "lucide-react"
@@ -15,8 +16,9 @@ const fetcher = (url: string) => fetch(url).then((res) => res.json())
 type SortOption = "newest" | "oldest" | "rating-high" | "rating-low" | "name-az" | "name-za"
 
 export default function LeadsPage() {
+  const router = useRouter()
+  const { user, loading: userLoading } = useUser()
   const { data: leads = [], mutate } = useSWR<Lead[]>("/api/leads", fetcher)
-  const { user } = useUser()
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null)
   const [showImportModal, setShowImportModal] = useState(false)
@@ -27,6 +29,12 @@ export default function LeadsPage() {
   const [showAllManual, setShowAllManual] = useState(false)
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
 
+  useEffect(() => {
+    if (!userLoading && !user) {
+      router.push("/login")
+    }
+  }, [user, userLoading, router])
+
   const getLeadRating = (lead: Lead): number => {
     return lead.session?.rating ?? lead.rating ?? 0
   }
@@ -36,9 +44,7 @@ export default function LeadsPage() {
   }
 
   const getLeadSource = (lead: Lead): string => {
-    // If they have a phone number, they're from WhatsApp
     if (lead.phone) return "whatsapp"
-    // If they have only email, they're from email
     if (lead.email) return "email"
     return ""
   }
@@ -75,7 +81,6 @@ export default function LeadsPage() {
       const hasEmailFilter = emailFilter
       
       if (hasWhatsappFilter && hasEmailFilter) {
-        // Both selected - show all leads
       } else if (hasWhatsappFilter) {
         if (source !== "whatsapp") return false
       } else if (hasEmailFilter) {

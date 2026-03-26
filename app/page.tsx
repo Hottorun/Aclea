@@ -2,15 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-
-interface User {
-  id: string
-  email: string
-  name: string
-  role: "admin" | "user"
-  teamId?: string
-  teamRole?: "owner" | "admin" | "member"
-}
+import { LandingPage } from "@/components/landing-page"
 
 export default function Home() {
   const router = useRouter()
@@ -20,19 +12,25 @@ export default function Home() {
     fetch("/api/auth")
       .then((res) => res.json())
       .then((data) => {
-        router.push("/dashboard")
+        if (data.user) {
+          router.push("/dashboard")
+        }
       })
       .catch(() => {
-        router.push("/login")
+        // Stay on landing page if auth check fails
       })
       .finally(() => {
         setIsLoading(false)
       })
   }, [router])
 
-  return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="animate-pulse text-muted-foreground">Loading...</div>
-    </div>
-  )
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-pulse text-muted-foreground">Loading...</div>
+      </div>
+    )
+  }
+
+  return <LandingPage />
 }
