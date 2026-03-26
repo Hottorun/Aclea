@@ -127,7 +127,7 @@ export interface IncomingLead {
 // Response sent back to chatbot when user sends a message
 export interface SendMessageResponse {
   leadId: string
-  action: "approve" | "decline"
+  action: "approve" | "decline" | "unrelated"
   message: string
   phone: string
 }

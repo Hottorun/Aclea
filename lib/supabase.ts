@@ -154,6 +154,7 @@ export async function addLead(lead: {
       isLoyal,
       autoApproved: false,
       teamId: lead.teamId,
+      status: "pending",
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     }
@@ -478,6 +479,7 @@ function mapDbLeadToLead(
     is_loyal?: boolean
     auto_approved?: boolean
     last_contacted_at?: string
+    status?: string
     created_at: string
     updated_at: string
     teams_id?: string
@@ -493,6 +495,7 @@ function mapDbLeadToLead(
     isLoyal: row.is_loyal || false,
     autoApproved: row.auto_approved || false,
     lastContactedAt: row.last_contacted_at,
+    status: (row.status as Lead["status"]) || "pending",
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     teamId: row.teams_id,
