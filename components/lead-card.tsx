@@ -13,23 +13,23 @@ interface LeadCardProps {
 const statusConfig: Record<LeadStatus, { label: string; dotColor: string; textColor: string }> = {
   pending: { 
     label: "Pending", 
-    dotColor: "bg-slate-400",
-    textColor: "text-slate-500"
+    dotColor: "bg-blue-500",
+    textColor: "text-blue-600"
   },
   approved: { 
     label: "Approved", 
-    dotColor: "bg-slate-400",
-    textColor: "text-slate-600"
+    dotColor: "bg-emerald-500",
+    textColor: "text-emerald-600"
   },
   declined: { 
     label: "Declined", 
-    dotColor: "bg-slate-300",
+    dotColor: "bg-slate-400",
     textColor: "text-slate-400"
   },
   manual: { 
     label: "Review", 
-    dotColor: "bg-slate-500",
-    textColor: "text-slate-600"
+    dotColor: "bg-violet-500",
+    textColor: "text-violet-600"
   },
 }
 

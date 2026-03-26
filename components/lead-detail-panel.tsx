@@ -15,6 +15,11 @@ import {
   Loader2,
   Star,
   Clock,
+  Sparkles,
+  Zap,
+  TrendingUp,
+  AlertCircle,
+  Target,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -114,7 +119,7 @@ export function LeadDetailPanel({ lead, onClose, onSendMessage }: LeadDetailPane
           </div>
         </div>
 
-        <div className="mt-6 flex items-center gap-3 rounded-lg border border-slate-200 bg-blue-50/30 p-4">
+        <div className="mt-6 flex items-center gap-3 rounded-lg border border-indigo-200 bg-indigo-50/50 p-4">
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-0.5">
               {Array.from({ length: 5 }).map((_, i) => (
@@ -129,8 +134,87 @@ export function LeadDetailPanel({ lead, onClose, onSendMessage }: LeadDetailPane
             </div>
             <span className="text-sm font-semibold text-slate-700">{lead.rating}/5</span>
           </div>
-          <div className="h-4 w-px bg-slate-200" />
-          <p className="text-sm text-slate-600">{lead.ratingReason}</p>
+          <div className="h-4 w-px bg-indigo-200" />
+          <div className="flex items-center gap-2">
+            <Sparkles className="h-3.5 w-3.5 text-indigo-500" />
+            <p className="text-sm text-indigo-600">{lead.ratingReason}</p>
+          </div>
+        </div>
+
+        <div className="mt-6 rounded-lg border border-indigo-200 bg-indigo-50/50 p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <Sparkles className="h-5 w-5 text-indigo-600" />
+            <h4 className="font-semibold text-indigo-700">AI Analysis</h4>
+          </div>
+          <div className="space-y-3">
+            <div className="flex items-start gap-3">
+              <div className={cn(
+                "flex h-8 w-8 items-center justify-center rounded-full shrink-0",
+                lead.rating >= 4 ? "bg-indigo-100" : lead.rating >= 3 ? "bg-blue-100" : "bg-slate-100"
+              )}>
+                <Target className={cn(
+                  "h-4 w-4",
+                  lead.rating >= 4 ? "text-indigo-600" : lead.rating >= 3 ? "text-blue-600" : "text-slate-500"
+                )} />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-slate-700">Priority Level</p>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  {lead.rating >= 4 ? "High priority - Immediate attention recommended" 
+                    : lead.rating >= 3 ? "Medium priority - Follow up within 48 hours"
+                    : "Low priority - Add to nurture sequence"}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <div className={cn(
+                "flex h-8 w-8 items-center justify-center rounded-full shrink-0",
+                lead.status === "manual" ? "bg-violet-100" : "bg-emerald-100"
+              )}>
+                {lead.status === "manual" ? (
+                  <AlertCircle className="h-4 w-4 text-violet-600" />
+                ) : (
+                  <Check className="h-4 w-4 text-emerald-600" />
+                )}
+              </div>
+              <div>
+                <p className="text-sm font-medium text-slate-700">Status</p>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  {lead.status === "manual" ? "Requires human review before action" 
+                    : lead.status === "pending" ? "Ready for automated processing"
+                    : lead.status === "approved" ? "Approved and ready for follow-up"
+                    : "Declined - May be reconsidered later"}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 shrink-0">
+                <TrendingUp className="h-4 w-4 text-slate-500" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-slate-700">Conversion Potential</p>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  {lead.rating >= 4 ? "High conversion likelihood - Strong interest signals" 
+                    : lead.rating >= 3 ? "Moderate conversion potential - Standard follow-up"
+                    : "Lower conversion probability - Consider automated nurture"}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 shrink-0">
+                <Zap className="h-4 w-4 text-blue-600" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-slate-700">Recommended Action</p>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  {lead.rating >= 4 ? "Contact within 24 hours for best results" 
+                    : lead.status === "manual" ? "Review and categorize before proceeding"
+                    : lead.rating >= 3 ? "Schedule follow-up call within 48 hours"
+                    : "Send welcome email sequence and periodic updates"}
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div className="mt-6 grid gap-3">
@@ -173,17 +257,14 @@ export function LeadDetailPanel({ lead, onClose, onSendMessage }: LeadDetailPane
           </div>
         </div>
 
-        <div className="mt-6">
-          <div className="flex items-center justify-between">
-            <label className="flex items-center gap-2 text-sm font-medium text-emerald-600">
-              <Check className="h-4 w-4" />
-              Approval Message
-            </label>
-            {!isActionable && lead.status === "approved" && (
-              <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600 font-medium">
-                Sent
-              </span>
-            )}
+        {lead.status === "manual" && (
+          <>
+            <div className="mt-6">
+              <div className="flex items-center justify-between">
+                <label className="flex items-center gap-2 text-sm font-medium text-emerald-600">
+                  <Check className="h-4 w-4" />
+                  Approval Message
+                </label>
           </div>
           <Textarea
             value={approveMessage}
@@ -219,20 +300,15 @@ export function LeadDetailPanel({ lead, onClose, onSendMessage }: LeadDetailPane
               <XCircle className="h-4 w-4" />
               Decline Message
             </label>
-            {!isActionable && lead.status === "declined" && (
-              <span className="text-xs px-2 py-0.5 rounded-full bg-red-50 text-red-600 font-medium">
-                Sent
-              </span>
-            )}
           </div>
           <Textarea
-            value={declineMessage}
-            onChange={(e) => setDeclineMessage(e.target.value)}
-            className="mt-2 min-h-[120px] bg-white border-slate-200 resize-none focus:border-blue-400 focus:ring-blue-100 text-gray-950 placeholder:text-slate-500"
-            placeholder="Enter decline message..."
-            disabled={!isActionable}
-          />
-          {isActionable && (
+                value={declineMessage}
+                onChange={(e) => setDeclineMessage(e.target.value)}
+                className="mt-2 min-h-[120px] bg-white border-slate-200 resize-none focus:border-blue-400 focus:ring-blue-100 text-gray-950 placeholder:text-slate-500"
+                placeholder="Enter decline message..."
+                disabled={!isActionable}
+              />
+              {isActionable && (
             <button
               onClick={() => handleSend("decline")}
               disabled={isSending !== null || !declineMessage.trim()}
@@ -252,6 +328,8 @@ export function LeadDetailPanel({ lead, onClose, onSendMessage }: LeadDetailPane
             </button>
           )}
         </div>
+          </>
+        )}
 
         <div className="mt-8 space-y-2 text-sm text-slate-500 flex items-center gap-2">
           <Clock className="h-4 w-4" />

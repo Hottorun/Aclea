@@ -5,7 +5,7 @@ import useSWR from "swr"
 import Link from "next/link"
 import { AppHeader } from "@/components/app-header"
 import { LeadDetailPanel } from "@/components/lead-detail-panel"
-import { Search, Mail, MessageCircle, Plus, Heart, Clock, ChevronRight, ArrowUpDown, Filter, X, ChevronDown, Phone, XCircle, RotateCcw, Trash2, AlertTriangle, LayoutGrid } from "lucide-react"
+import { Search, Mail, MessageCircle, Plus, Heart, Clock, ChevronRight, ArrowUpDown, Filter, X, ChevronDown, Phone, XCircle, RotateCcw, Trash2, AlertTriangle, LayoutGrid, Sparkles } from "lucide-react"
 import type { Lead, LeadSource } from "@/lib/types"
 import { cn } from "@/lib/utils"
 import { ThemeBackground } from "@/lib/use-theme-gradient"
@@ -62,7 +62,21 @@ export default function LeadsPage() {
   }
 
   const manualLeadsRaw = leads.filter(l => l.status === "manual")
-  const manualLeads = sortLeads(filterLeads(manualLeadsRaw))
+  const manualLeads = sortLeads(filterLeads(manualLeadsRaw)).sort((a, b) => {
+    const scoreA = a.rating + (a.isLoyal ? 1 : 0)
+    const scoreB = b.rating + (b.isLoyal ? 1 : 0)
+    return scoreB - scoreA
+  })
+
+  const getAiRecommendation = (lead: Lead) => {
+    if (lead.rating >= 4) {
+      return { text: "High priority", cta: "Contact today", style: "border-indigo-200 bg-indigo-50 text-indigo-600" }
+    }
+    if (lead.rating >= 3) {
+      return { text: "Medium priority", cta: "Schedule follow-up", style: "border-blue-200 bg-blue-50 text-blue-600" }
+    }
+    return { text: "Nurture", cta: "Send newsletter", style: "border-slate-200 bg-slate-50 text-slate-500" }
+  }
   const loyalCustomersRaw = leads.filter(l => l.isLoyal && (l.status === "approved" || l.status === "pending"))
   const loyalCustomers = sortLeads(filterLeads(loyalCustomersRaw))
   const declinedLeadsRaw = leads.filter(l => l.status === "declined")
@@ -251,7 +265,9 @@ export default function LeadsPage() {
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {(showAllManual ? manualLeads : manualLeads.slice(0, 6)).map((lead) => (
+              {(showAllManual ? manualLeads : manualLeads.slice(0, 6)).map((lead) => {
+                const aiRec = getAiRecommendation(lead)
+                return (
                 <button
                   key={lead.id}
                   onClick={() => setSelectedLead(lead)}
@@ -283,6 +299,13 @@ export default function LeadsPage() {
                       <span className="text-xs text-slate-500 ml-1">{lead.rating}/5</span>
                     </div>
                     <p className="text-sm text-slate-500 dark:text-slate-400 truncate mt-2">{lead.conversationSummary}</p>
+                    <div className={cn("mt-3 flex items-center justify-between gap-2 px-3 py-2 rounded-lg border text-xs", aiRec.style)}>
+                      <div className="flex items-center gap-2">
+                        <Sparkles className="h-3.5 w-3.5 shrink-0" />
+                        <span className="font-medium">{aiRec.text}</span>
+                      </div>
+                      <span className="font-medium">{aiRec.cta}</span>
+                    </div>
                     <div className="flex items-center gap-4 mt-3 text-xs text-slate-600 dark:text-slate-400">
                       <span className="flex items-center gap-1">
                         <Phone className="h-3.5 w-3.5 text-slate-400" />
@@ -308,7 +331,7 @@ export default function LeadsPage() {
                   </div>
                   <ChevronRight className="h-5 w-5 text-slate-400 shrink-0" />
                 </button>
-              ))}
+              )})}
             </div>
             {manualLeads.length > 6 && (
               <div className="flex justify-center mt-4">
