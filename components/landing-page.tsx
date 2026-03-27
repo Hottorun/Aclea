@@ -243,7 +243,8 @@ export function LandingPage() {
       <HeroGeometric 
         badge={t('badge')}
         title1={t('title').split('.').slice(0,1).join('.')}
-        title2={t('title').split('.').slice(1).join('.').replace(/^\s+/, '') || 'Instantly Qualified.'}
+        title2={t('title').split('.').slice(1,2).join('.').trim() || 'One Place.'}
+        title3={t('title').split('.').slice(2).join('.').replace(/^\s+/, '') || 'Instantly Qualified.'}
       />
       <main className="overflow-hidden bg-[#030303] relative z-10">
         <FeaturesSection t={t} />
@@ -376,7 +377,7 @@ function FeaturesSection({ t }: FeaturesSectionProps) {
   ]
 
   return (
-    <section className="py-24 relative" id="funktionen">
+    <section className="py-16 -mt-10 relative" id="funktionen">
       <div className="mx-auto max-w-7xl px-6">
         <div className="text-center mb-16">
           <div className="inline-flex items-center gap-2 px-4 py-2 mb-6 rounded-full border border-emerald-600/20 bg-emerald-600/10">

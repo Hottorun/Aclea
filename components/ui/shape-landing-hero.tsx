@@ -92,11 +92,13 @@ function ElegantShape({
 function HeroGeometric({
     badge = "AI-Powered Lead Qualification",
     title1 = "Every Lead.",
-    title2 = "Instantly Qualified.",
+    title2 = "One Place.",
+    title3 = "Instantly Qualified.",
 }: {
     badge?: string;
     title1?: string;
     title2?: string;
+    title3?: string;
 }) {
     const fadeUpVariants: Variants = {
         hidden: { opacity: 0, y: 30 },
@@ -114,7 +116,11 @@ function HeroGeometric({
     const { scrollY } = useScroll();
     
     const heroY = useTransform(scrollY, [0, 300], [0, 80], { clamp: true });
-    const heroOpacity = useTransform(scrollY, [0, 150, 300], [1, 1, 0], { clamp: true });
+    const badgeOpacity = useTransform(scrollY, [0, 80, 150], [1, 1, 0], { clamp: true });
+    const title1Opacity = useTransform(scrollY, [0, 100, 180], [1, 1, 0], { clamp: true });
+    const title2Opacity = useTransform(scrollY, [0, 150, 230], [1, 1, 0], { clamp: true });
+    const title3Opacity = useTransform(scrollY, [0, 200, 280], [1, 1, 0], { clamp: true });
+    const descOpacity = useTransform(scrollY, [0, 250, 350], [1, 1, 0], { clamp: true });
     const backgroundY = useTransform(scrollY, [0, 500], [0, 100], { clamp: true });
 
     return (
@@ -201,16 +207,14 @@ function HeroGeometric({
                 />
             </motion.div>
 
-            <motion.div 
-                className="relative z-10 container mx-auto px-4 md:px-6"
-                style={{ opacity: heroOpacity }}
-            >
+            <div className="relative z-10 container mx-auto px-4 md:px-6">
                 <div className="max-w-3xl mx-auto text-center">
                     <motion.div
                         custom={0}
                         variants={fadeUpVariants}
                         initial="hidden"
                         animate="visible"
+                        style={{ opacity: badgeOpacity }}
                         className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/[0.03] border border-white/[0.08] mb-8 md:mb-12"
                     >
                         <Circle className="h-2 w-2 fill-emerald-500/80" />
@@ -224,18 +228,11 @@ function HeroGeometric({
                         variants={fadeUpVariants}
                         initial="hidden"
                         animate="visible"
+                        style={{ opacity: title1Opacity }}
                     >
-                        <h1 className="text-4xl sm:text-6xl md:text-8xl font-bold mb-6 md:mb-8 tracking-tight">
+                        <h1 className="text-4xl sm:text-6xl md:text-8xl font-bold mb-2 tracking-tight">
                             <span className="bg-clip-text text-transparent bg-gradient-to-b from-white to-white/80">
                                 {title1}
-                            </span>
-                            <br />
-                            <span
-                                className={cn(
-                                    "bg-clip-text text-transparent bg-gradient-to-r from-emerald-300 via-white/90 to-rose-300 "
-                                )}
-                            >
-                                {title2}
                             </span>
                         </h1>
                     </motion.div>
@@ -245,6 +242,39 @@ function HeroGeometric({
                         variants={fadeUpVariants}
                         initial="hidden"
                         animate="visible"
+                        style={{ opacity: title2Opacity }}
+                    >
+                        <h1 className="text-4xl sm:text-6xl md:text-8xl font-bold mb-2 tracking-tight">
+                            <span className="bg-clip-text text-transparent bg-gradient-to-b from-white to-white/80">
+                                {title2}
+                            </span>
+                        </h1>
+                    </motion.div>
+
+                    <motion.div
+                        custom={3}
+                        variants={fadeUpVariants}
+                        initial="hidden"
+                        animate="visible"
+                        style={{ opacity: title3Opacity }}
+                    >
+                        <h1 className="text-4xl sm:text-6xl md:text-8xl font-bold mb-6 md:mb-8 tracking-tight">
+                            <span
+                                className={cn(
+                                    "bg-clip-text text-transparent bg-gradient-to-r from-emerald-300 via-white/90 to-rose-300 "
+                                )}
+                            >
+                                {title3}
+                            </span>
+                        </h1>
+                    </motion.div>
+
+                    <motion.div
+                        custom={4}
+                        variants={fadeUpVariants}
+                        initial="hidden"
+                        animate="visible"
+                        style={{ opacity: descOpacity }}
                     >
                         <p className="text-base sm:text-lg md:text-xl text-white/40 mb-8 leading-relaxed font-light tracking-wide max-w-xl mx-auto px-4">
                             Stop spending hours evaluating leads. Our AI automatically
@@ -253,7 +283,7 @@ function HeroGeometric({
                         </p>
                     </motion.div>
                 </div>
-            </motion.div>
+            </div>
 
             <div className="absolute inset-0 bg-gradient-to-t from-[#030303] via-transparent to-[#030303]/80 pointer-events-none" />
         </div>
