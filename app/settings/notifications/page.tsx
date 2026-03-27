@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { ArrowLeft, Bell, Check, AlertTriangle, Mail, MessageCircle, Clock, CheckCircle, XCircle } from "lucide-react"
+import { ArrowLeft, Bell, Check, AlertTriangle, Mail, MessageCircle, Clock, CheckCircle, XCircle, Phone, Smartphone } from "lucide-react"
 import { ThemeBackground } from "@/lib/use-theme-gradient"
 import { cn } from "@/lib/utils"
 
@@ -11,6 +11,8 @@ export default function NotificationsPage() {
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" | "info" } | null>(null)
   const [preferences, setPreferences] = useState({
     pushEnabled: true,
+    emailEnabled: true,
+    phoneEnabled: false,
     newLeads: true,
     leadApproved: true,
     leadDeclined: true,
@@ -151,6 +153,89 @@ export default function NotificationsPage() {
                 </div>
               </div>
 
+              <div className="p-4 rounded-xl border border-slate-200 bg-slate-50">
+                <h3 className="text-sm font-medium text-slate-700 mb-4">Notification Channels</h3>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-100">
+                        <Smartphone className="h-5 w-5 text-indigo-600" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-slate-800">Push Notifications</p>
+                        <p className="text-sm text-slate-500">Browser/app notifications</p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => handleToggle("pushEnabled")}
+                      className={cn(
+                        "relative w-12 h-6 rounded-full transition-colors cursor-pointer",
+                        preferences.pushEnabled ? "bg-blue-500" : "bg-slate-200"
+                      )}
+                    >
+                      <span
+                        className={cn(
+                          "absolute top-1 w-4 h-4 bg-white rounded-full transition-transform",
+                          preferences.pushEnabled ? "left-7" : "left-1"
+                        )}
+                      />
+                    </button>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-100">
+                        <Mail className="h-5 w-5 text-emerald-600" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-slate-800">Email Notifications</p>
+                        <p className="text-sm text-slate-500">Receive updates via email</p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => handleToggle("emailEnabled")}
+                      className={cn(
+                        "relative w-12 h-6 rounded-full transition-colors cursor-pointer",
+                        preferences.emailEnabled ? "bg-blue-500" : "bg-slate-200"
+                      )}
+                    >
+                      <span
+                        className={cn(
+                          "absolute top-1 w-4 h-4 bg-white rounded-full transition-transform",
+                          preferences.emailEnabled ? "left-7" : "left-1"
+                        )}
+                      />
+                    </button>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-100">
+                        <Phone className="h-5 w-5 text-amber-600" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-slate-800">SMS/Phone Notifications</p>
+                        <p className="text-sm text-slate-500">Receive updates via text message</p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => handleToggle("phoneEnabled")}
+                      className={cn(
+                        "relative w-12 h-6 rounded-full transition-colors cursor-pointer",
+                        preferences.phoneEnabled ? "bg-blue-500" : "bg-slate-200"
+                      )}
+                    >
+                      <span
+                        className={cn(
+                          "absolute top-1 w-4 h-4 bg-white rounded-full transition-transform",
+                          preferences.phoneEnabled ? "left-7" : "left-1"
+                        )}
+                      />
+                    </button>
+                  </div>
+                </div>
+              </div>
+
               {notificationTypes.map((section) => (
                 <div key={section.category}>
                   <h3 className="text-sm font-medium text-slate-500 uppercase tracking-wide mb-3">
@@ -160,12 +245,13 @@ export default function NotificationsPage() {
                     {section.items.map((item) => {
                       const Icon = item.icon
                       const isEnabled = preferences[item.key]
+                      const isChannelEnabled = preferences.pushEnabled || preferences.emailEnabled || preferences.phoneEnabled
                       return (
                         <div
                           key={item.key}
                           className={cn(
                             "p-4 rounded-xl border transition-colors",
-                            preferences.pushEnabled
+                            isChannelEnabled
                               ? "border-slate-200 bg-white hover:border-slate-300"
                               : "border-slate-100 bg-slate-50 opacity-60"
                           )}
@@ -182,17 +268,17 @@ export default function NotificationsPage() {
                             </div>
                             <button
                               onClick={() => handleToggle(item.key)}
-                              disabled={!preferences.pushEnabled}
+                              disabled={!isChannelEnabled}
                               className={cn(
                                 "relative w-12 h-6 rounded-full transition-colors cursor-pointer",
-                                isEnabled && preferences.pushEnabled ? "bg-blue-500" : "bg-slate-200",
-                                !preferences.pushEnabled && "cursor-not-allowed"
+                                isEnabled && isChannelEnabled ? "bg-blue-500" : "bg-slate-200",
+                                !isChannelEnabled && "cursor-not-allowed"
                               )}
                             >
                               <span
                                 className={cn(
                                   "absolute top-1 w-4 h-4 bg-white rounded-full transition-transform",
-                                  isEnabled && preferences.pushEnabled ? "left-7" : "left-1"
+                                  isEnabled && isChannelEnabled ? "left-7" : "left-1"
                                 )}
                               />
                             </button>

@@ -12,6 +12,31 @@ import {
 } from "lucide-react"
 import type { Lead } from "@/lib/types"
 
+const gradientKeyframes = `
+@keyframes gradientShift {
+  0% { background-position: 0% 50% }
+  50% { background-position: 100% 50% }
+  100% { background-position: 0% 50% }
+}
+
+.ai-gradient-text {
+  background: linear-gradient(135deg, #6366f1 0%, #818cf8 25%, #c084fc 50%, #a855f7 75%, #4f46e5 100%);
+  background-size: 300% 300%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: gradientShift 4s ease infinite;
+}
+
+.ai-gradient-border {
+  background: linear-gradient(135deg, #6366f1, #818cf8, #c084fc, #a855f7, #6366f1);
+  background-size: 300% 300%;
+  animation: gradientShift 4s ease infinite;
+  border-radius: 999px;
+  padding: 2px;
+}
+`
+
 export default function DashboardPage() {
   const router = useRouter()
   const [user, setUser] = useState<any>(null)
@@ -63,33 +88,30 @@ export default function DashboardPage() {
 
   const firstName = user.name?.split(" ")[0] || "User"
 
-  const activeLeads = leads.filter(l => {
-    const session = l.session
-    return session?.status === "active" && session?.currentStep !== "completed" && session?.currentStep !== "cancelled"
-  })
-  
-  const sortedActiveLeads = [...activeLeads].sort((a, b) => {
-    const aRating = a.session?.rating ?? 0
-    const bRating = b.session?.rating ?? 0
-    if (bRating !== aRating) return bRating - aRating
-    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-  })
-  const topLeads = sortedActiveLeads.slice(0, 3)
-  
-  const urgentLeads = [...leads]
+  const topLeads = [...leads]
     .filter(l => {
-      const session = l.session
-      const rating = session?.rating ?? 0
-      const updatedAt = new Date(l.updatedAt)
-      const daysSinceUpdate = (Date.now() - updatedAt.getTime()) / (1000 * 60 * 60 * 24)
-      return daysSinceUpdate > 2 || rating >= 4
+      const rating = l.session?.rating ?? 0
+      return rating >= 3
     })
     .sort((a, b) => {
       const aRating = a.session?.rating ?? 0
       const bRating = b.session?.rating ?? 0
+      if (bRating !== aRating) return bRating - aRating
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    })
+    .slice(0, 3)
+  
+  const urgentLeads = [...leads]
+    .filter(l => {
+      const status = l.session?.status || l.status
+      return status === "pending" || status === "manual"
+    })
+    .sort((a, b) => {
+      const aRating = a.session?.rating ?? 0
+      const bRating = b.session?.rating ?? 0
+      if (bRating !== aRating) return bRating - aRating
       const aUpdated = new Date(a.updatedAt).getTime()
       const bUpdated = new Date(b.updatedAt).getTime()
-      if (bRating !== aRating) return bRating - aRating
       return bUpdated - aUpdated
     })
     .slice(0, 3)
@@ -101,8 +123,14 @@ export default function DashboardPage() {
       const created = new Date(l.createdAt)
       return created.toDateString() === today.toDateString()
     }).length,
-    needsReview: activeLeads.length,
-    priority: leads.filter(l => l.isLoyal).length
+    pending: leads.filter(l => {
+      const status = l.session?.status || l.status
+      return status === "pending" || status === "manual"
+    }).length,
+    approved: leads.filter(l => {
+      const status = l.session?.status || l.status
+      return status === "approved"
+    }).length
   }
 
   const getInitials = (name: string) => {
@@ -188,13 +216,18 @@ export default function DashboardPage() {
 
   return (
     <div key={user.id}>
+      <style dangerouslySetInnerHTML={{ __html: gradientKeyframes }} />
       <AppHeader onRefresh={() => {}} isRefreshing={false} user={{ name: user.name, email: user.email }} />
       <ThemeBackground>
         <div className="p-6 space-y-8 max-w-6xl mx-auto">
           <div className="text-center py-8">
-            <div className={cn("inline-flex items-center gap-2 px-4 py-2 rounded-full border mb-4", uiStyle === "minimal" ? "bg-gradient-to-r from-indigo-100 to-purple-100 border-indigo-200" : "bg-indigo-50 border-indigo-200")}>
-              <Sparkles className={cn("h-4 w-4", uiStyle === "minimal" ? "text-indigo-500" : "text-indigo-500")} />
-              <span className={cn("text-sm font-medium", uiStyle === "minimal" ? "text-indigo-600" : "text-indigo-600")}>AI-Powered Lead Management</span>
+            <div className="mb-4">
+              <div className={cn("ai-gradient-border inline-flex items-center gap-2", uiStyle === "minimal" ? "" : "")}>
+                <div className={cn("bg-white rounded-full px-4 py-2 flex items-center gap-2", uiStyle === "minimal" ? "" : "")}>
+                  <Sparkles className="h-4 w-4 text-indigo-500" />
+                  <span className="text-sm font-medium text-slate-800">AI-Powered Lead Management</span>
+                </div>
+              </div>
             </div>
             <h1 className="text-4xl font-bold text-slate-800 dark:text-slate-100">
               Good {new Date().getHours() < 12 ? "Morning" : new Date().getHours() < 18 ? "Afternoon" : "Evening"},{" "}
@@ -228,17 +261,17 @@ export default function DashboardPage() {
                   <Clock className={cn("h-6 w-6", uiStyle === "minimal" ? "text-slate-700" : "text-slate-600 dark:text-slate-300")} />
                 </div>
                 <div>
-                  <p className="text-sm text-slate-500 dark:text-slate-400">Active Sessions</p>
-                  <p className="text-2xl font-bold text-slate-800 dark:text-slate-100">{stats.needsReview}</p>
+                  <p className="text-sm text-slate-500 dark:text-slate-400">Needs Review</p>
+                  <p className="text-2xl font-bold text-slate-800 dark:text-slate-100">{stats.pending}</p>
                 </div>
               </div>
               <div className="flex items-center gap-4 px-6 py-5 flex-1">
                 <div className="p-3 rounded-xl bg-slate-200 dark:bg-slate-700">
-                  <Heart className={cn("h-6 w-6", uiStyle === "minimal" ? "text-slate-700" : "text-slate-600 dark:text-slate-300")} />
+                  <CheckCircle className={cn("h-6 w-6", uiStyle === "minimal" ? "text-slate-700" : "text-slate-600 dark:text-slate-300")} />
                 </div>
                 <div>
-                  <p className="text-sm text-slate-500 dark:text-slate-400">Priority</p>
-                  <p className="text-2xl font-bold text-slate-800 dark:text-slate-100">{stats.priority}</p>
+                  <p className="text-sm text-slate-500 dark:text-slate-400">Approved</p>
+                  <p className="text-2xl font-bold text-slate-800 dark:text-slate-100">{stats.approved}</p>
                 </div>
               </div>
             </div>
@@ -246,18 +279,18 @@ export default function DashboardPage() {
 
           <div className="grid md:grid-cols-2 gap-6">
             <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden">
-              <div className={cn("p-5 border-b border-slate-100 dark:border-slate-700", uiStyle === "minimal" ? "bg-gradient-to-r from-indigo-50 to-purple-50" : "bg-indigo-50/30")}>
+              <div className={cn("p-5 border-b border-slate-100 dark:border-slate-700", uiStyle === "minimal" ? "bg-slate-100" : "bg-white")}>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className={cn("p-2 rounded-lg", uiStyle === "minimal" ? "bg-gradient-to-br from-indigo-500 to-purple-500" : "bg-indigo-100")}>
-                      <Zap className={cn("h-5 w-5", uiStyle === "minimal" ? "text-white" : "text-indigo-600")} />
+                    <div className="p-2 rounded-lg bg-slate-200 dark:bg-slate-700">
+                      <Zap className="h-5 w-5 text-slate-600 dark:text-slate-300" />
                     </div>
                     <div>
                       <h2 className="font-semibold text-slate-800 dark:text-slate-100">Top 3 Leads</h2>
-                      <p className="text-sm text-slate-500">Highest rated, active sessions</p>
+                      <p className="text-sm text-slate-500">AI's highest value leads</p>
                     </div>
                   </div>
-                  <Link href="/leads" className={cn("text-sm flex items-center gap-1", uiStyle === "minimal" ? "text-indigo-600 hover:text-indigo-700" : "text-indigo-600 hover:text-indigo-700")}>
+                  <Link href="/leads" className={cn("text-sm flex items-center gap-1", uiStyle === "minimal" ? "text-slate-600 hover:text-slate-700" : "text-amber-600 hover:text-amber-700")}>
                     View All <ArrowRight className="h-4 w-4" />
                   </Link>
                 </div>

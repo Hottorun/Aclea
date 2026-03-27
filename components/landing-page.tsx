@@ -306,7 +306,7 @@ function HeroHeader({ t, language, toggleLanguage, theme, setTheme }: HeroHeader
   return (
     <header>
       <nav className={cn('fixed z-20 w-full px-2 group', menuState && 'active')}>
-        <div className={cn('mx-auto mt-2 max-w-6xl px-6 transition-all duration-300 lg:px-12 border border-slate-200/30 dark:border-slate-700/30 rounded-2xl', isScrolled && 'bg-white/80 dark:bg-slate-900/50 max-w-4xl border-slate-200/60 dark:border-slate-700/60 backdrop-blur-lg lg:px-5')}>
+        <div className={cn('mx-auto mt-2 max-w-6xl px-6 transition-all duration-500 lg:px-12 border border-slate-200/30 dark:border-slate-700/30 rounded-2xl', isScrolled && 'bg-white/80 dark:bg-slate-900/50 max-w-4xl border-slate-200/60 dark:border-slate-700/60 backdrop-blur-lg lg:px-5')}>
           <div className="relative flex flex-wrap items-center justify-between gap-6 py-3 lg:gap-0 lg:py-4">
             <div className="flex w-full justify-between lg:w-auto">
               <Link href="/" aria-label="Startseite" className="flex items-center space-x-2">
