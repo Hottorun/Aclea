@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 
-import { ArrowRight, ChevronDown, CreditCard, Heart, Menu, Shield, X, Zap, Mail, Phone, MapPin, Sun, Moon, Globe, Check } from 'lucide-react'
+import { ArrowRight, ChevronDown, CreditCard, Heart, Menu, Shield, X, Zap, Mail, Phone, MapPin, Globe, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { useLanguage } from './language-provider'
@@ -244,7 +244,8 @@ export function LandingPage() {
       <HeroGeometric 
         badge={t('badge')}
         title1={t('title').split('.').slice(0,1).join('.')}
-        title2={t('title').split('.').slice(1).join('.').replace(/^\s+/, '') || 'Instantly Qualified.'}
+        title2={t('title').split('.').slice(1,2).join('.').trim() || 'One Place.'}
+        title3={t('title').split('.').slice(2).join('.').replace(/^\s+/, '') || 'Instantly Qualified.'}
       />
       <div className="absolute inset-0 bg-[#030303] -mt-[30vh] pointer-events-none" />
       <main className="overflow-hidden bg-[#030303] relative">
