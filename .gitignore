@@ -40,4 +40,4 @@ coverage/
 next-env.d.ts
 
 # Turbo
-.turbo/
+.turbo/replacements.txt

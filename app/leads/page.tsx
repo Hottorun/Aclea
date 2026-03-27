@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo, useEffect } from "react"
+import { useState, useMemo, useEffect, Suspense } from "react"
 import useSWR from "swr"
 import { useRouter, useSearchParams } from "next/navigation"
 import { AppHeader } from "@/components/app-header"
@@ -25,6 +25,14 @@ const statusColors = {
 }
 
 export default function LeadsPage() {
+  return (
+    <Suspense fallback={<div className="p-6 text-center text-slate-500">Loading...</div>}>
+      <LeadsContent />
+    </Suspense>
+  )
+}
+
+function LeadsContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { user, loading: userLoading } = useUser()

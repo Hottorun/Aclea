@@ -59,7 +59,7 @@ function Item({
   ...props
 }: React.ComponentProps<'div'> &
   VariantProps<typeof itemVariants> & { asChild?: boolean }) {
-  const Comp = asChild ? Slot : 'div'
+  const Comp = asChild ? (Slot as React.ElementType) : 'div'
   return (
     <Comp
       data-slot="item"

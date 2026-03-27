@@ -164,7 +164,7 @@ export function Analytics({ leads }: AnalyticsProps) {
           await new Promise(resolve => setTimeout(resolve, 100))
           
           const canvas = await html2canvas(clone, {
-            backgroundColor: '#ffffff',
+            background: '#ffffff',
             scale: 2,
             useCORS: true,
             logging: false,
