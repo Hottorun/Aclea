@@ -125,7 +125,7 @@ function HeroGeometric({
             />
 
             <motion.div 
-                className="absolute inset-0 overflow-hidden will-change-transform"
+                className="absolute inset-0 overflow-hidden will-change-transform z-10"
                 style={{ y: heroY }}
             >
                 <ElegantShape
