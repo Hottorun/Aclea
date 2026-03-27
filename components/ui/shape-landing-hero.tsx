@@ -152,7 +152,7 @@ function HeroGeometric({
                     height={120}
                     rotate={-15}
                     gradient="from-rose-500/[0.15]"
-                    className="right-[-5%] md:right-[0%] top-[70%] md:top-[75%]"
+                    className="right-[-5%] md:right-[0%] top-[70%] md:top-[75%] hidden md:block"
                     scrollYRange={[0, 250]}
                     scrollXRange={[0, -70]}
                     scrollRotateDelta={-35}
@@ -164,7 +164,7 @@ function HeroGeometric({
                     height={80}
                     rotate={-8}
                     gradient="from-violet-500/[0.15]"
-                    className="left-[5%] md:left-[10%] bottom-[5%] md:bottom-[10%]"
+                    className="left-[5%] md:left-[10%] bottom-[5%] md:bottom-[10%] hidden md:block"
                     scrollYRange={[0, -50]}
                     scrollXRange={[0, 30]}
                     scrollRotateDelta={10}
@@ -188,7 +188,7 @@ function HeroGeometric({
                     height={40}
                     rotate={-25}
                     gradient="from-cyan-500/[0.15]"
-                    className="left-[20%] md:left-[25%] top-[5%] md:top-[10%]"
+                    className="left-[20%] md:left-[25%] top-[5%] md:top-[10%] hidden md:block"
                     scrollYRange={[0, -80]}
                     scrollXRange={[0, 40]}
                     scrollRotateDelta={30}
@@ -200,7 +200,7 @@ function HeroGeometric({
                     height={30}
                     rotate={45}
                     gradient="from-blue-500/[0.15]"
-                    className="right-[30%] md:right-[35%] bottom-[20%] md:bottom-[25%]"
+                    className="right-[30%] md:right-[35%] bottom-[20%] md:bottom-[25%] hidden md:block"
                     scrollYRange={[0, 140]}
                     scrollXRange={[0, -50]}
                     scrollRotateDelta={-25}
