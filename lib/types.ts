@@ -14,6 +14,10 @@ export interface LeadSession {
   ratingReason?: string
   forwardedAt?: string
   updatedAt: string
+  aiRecommendation?: string
+  conversionProbability?: number
+  dealValue?: number
+  urgency?: "High" | "Medium" | "Low"
 }
 
 export interface CollectedData {
