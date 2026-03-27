@@ -118,14 +118,14 @@ function HeroGeometric({
     const backgroundY = useTransform(scrollY, [0, 800], [0, 150], { clamp: true });
 
     return (
-        <div className="relative min-h-[150vh] w-full flex items-center justify-center overflow-hidden bg-[#030303]">
+        <div className="relative min-h-screen w-full flex items-center justify-center overflow-hidden bg-[#030303]">
             <motion.div 
                 className="absolute inset-0 bg-gradient-to-br from-emerald-500/[0.05] via-transparent to-rose-500/[0.05]"
                 style={{ y: backgroundY, willChange: "transform" }}
             />
 
             <motion.div 
-                className="absolute inset-0 overflow-hidden will-change-transform z-10"
+                className="absolute inset-0 overflow-hidden will-change-transform z-0"
                 style={{ y: heroY }}
             >
                 <ElegantShape
@@ -133,7 +133,7 @@ function HeroGeometric({
                     width={600}
                     height={140}
                     rotate={12}
-                    gradient="from-emerald-500/[0.15]"
+                    gradient="from-emerald-500/[0.8]"
                     className="left-[-10%] md:left-[-5%] top-[10%] md:top-[15%]"
                     scrollYRange={[0, -300]}
                     scrollXRange={[0, 150]}
