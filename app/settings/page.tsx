@@ -41,14 +41,7 @@ export default function Settings() {
   const [newMember, setNewMember] = useState({ email: "", name: "", password: "", role: "member" as "admin" | "member" })
   const [isAddingMember, setIsAddingMember] = useState(false)
   const [teamError, setTeamError] = useState<string | null>(null)
-  // Modal states
-  const [showProfileModal, setShowProfileModal] = useState(false)
-  const [showPasswordModal, setShowPasswordModal] = useState(false)
-  const [showSecurityModal, setShowSecurityModal] = useState(false)
-  const [showNotificationsModal, setShowNotificationsModal] = useState(false)
-  const [showAiModal, setShowAiModal] = useState(false)
-  const [showDataManagementModal, setShowDataManagementModal] = useState(false)
-  const [showPrivacyModal, setShowPrivacyModal] = useState(false)
+
 
   const isAdminOrOwner = user?.teamRole === "admin" || user?.teamRole === "owner"
 
@@ -312,40 +305,40 @@ export default function Settings() {
     ...(isAdminOrOwner ? [{
       title: "Team Management",
       items: [
-        { icon: Users, label: "Team Members", description: "Manage your team and their access levels", action: () => setShowTeamDialog(true) },
+        { icon: Users, label: "Team Members", description: "Manage your team and their access levels", action: () => router.push("/settings/team") },
       ],
       inviteCode: inviteCode,
     }] : []),
     {
       title: "Account",
       items: [
-        { icon: User, label: "Profile Information", description: "Update your name, email, and profile picture", action: () => setShowProfileModal(true) },
-        { icon: Key, label: "Password", description: "Change your password", action: () => setShowPasswordModal(true) },
-        { icon: Shield, label: "Security", description: "Two-factor authentication and login history", action: () => setShowSecurityModal(true) },
+        { icon: User, label: "Profile Information", description: "Update your name, email, and profile picture", action: () => router.push("/settings/profile") },
+        { icon: Key, label: "Password", description: "Change your password", action: () => router.push("/settings/password") },
+        { icon: Shield, label: "Security", description: "Two-factor authentication and login history", action: () => router.push("/settings/security") },
       ],
     },
     {
       title: "Notifications",
       items: [
-        { icon: Bell, label: "Notification Preferences", description: "Choose how you want to be notified", action: () => setShowNotificationsModal(true) },
+        { icon: Bell, label: "Notification Preferences", description: "Choose how you want to be notified", action: () => router.push("/settings/notifications") },
       ],
     },
     {
       title: "AI Settings",
       items: [
-        { icon: Bot, label: "AI Configuration", description: "Customize how AI handles your leads", action: () => setShowAiModal(true) },
+        { icon: Bot, label: "AI Configuration", description: "Customize how AI handles your leads", action: () => router.push("/settings/ai") },
       ],
     },
     {
       title: "Data Management",
       items: [
-        { icon: Database, label: "Data Management", description: "Export or import your data", action: () => setShowDataManagementModal(true) },
+        { icon: Database, label: "Data Management", description: "Export or import your data", action: () => router.push("/settings/data-management") },
       ],
     },
     {
       title: "Privacy Settings",
       items: [
-        { icon: Shield, label: "Privacy Settings", description: "Control your data and privacy", action: () => setShowPrivacyModal(true) },
+        { icon: Shield, label: "Privacy Settings", description: "Control your data and privacy", action: () => router.push("/settings/privacy") },
       ],
     },
   ]
