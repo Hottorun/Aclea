@@ -110,7 +110,7 @@ export function ThemeBackground({ children, className = "" }: { children: React.
    const getBackgroundStyle = (): React.CSSProperties => {
      if (isDark) return { background: "#0f172a" }
      
-     return { background: "linear-gradient(to bottom right, #dbeafe, #e0e7ff)" }
+     return { background: "#F6F8FA" }
    }
 
    return (

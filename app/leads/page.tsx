@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { AppHeader } from "@/components/app-header"
 import { LeadDetailPanel } from "@/components/lead-detail-panel"
 import { ImportLeadModal } from "@/components/import-lead-modal"
-import { Search, Mail, Plus, ChevronRight, ArrowUpDown, LayoutGrid, List, Clock, Star, X, Check } from "lucide-react"
+import { Search, Mail, Plus, ChevronRight, ArrowUpDown, LayoutGrid, List, Clock, Star, X, Check, CheckCircle2, AlertCircle } from "lucide-react"
 import type { Lead } from "@/lib/types"
 import { cn } from "@/lib/utils"
 import { ThemeBackground } from "@/lib/use-theme-gradient"
@@ -38,6 +38,7 @@ function LeadsContent() {
   const [sortBy, setSortBy] = useState<SortOption>("rating-high")
   const [viewMode, setViewMode] = useState<"grid" | "list">("list")
   const [searchQuery, setSearchQuery] = useState("")
+  const [selectedActionLeads, setSelectedActionLeads] = useState<Set<string>>(new Set())
 
   useEffect(() => {
     const leadId = searchParams.get("id")
@@ -103,6 +104,73 @@ function LeadsContent() {
     }
   }
 
+  const handleBatchApprove = async () => {
+    for (const leadId of selectedActionLeads) {
+      try {
+        await fetch(`/api/leads/${leadId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status: "approved" }),
+        })
+      } catch (error) {
+        console.error("Failed to approve lead:", error)
+      }
+    }
+    setSelectedActionLeads(new Set())
+    mutate()
+  }
+
+  const handleBatchDecline = async () => {
+    for (const leadId of selectedActionLeads) {
+      try {
+        await fetch(`/api/leads/${leadId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status: "declined" }),
+        })
+      } catch (error) {
+        console.error("Failed to decline lead:", error)
+      }
+    }
+    setSelectedActionLeads(new Set())
+    mutate()
+  }
+
+  const toggleSelectAll = () => {
+    if (selectedActionLeads.size === actionLeads.length) {
+      setSelectedActionLeads(new Set())
+    } else {
+      setSelectedActionLeads(new Set(actionLeads.map(l => l.id)))
+    }
+  }
+
+  const toggleSelectLead = (leadId: string) => {
+    const newSet = new Set(selectedActionLeads)
+    if (newSet.has(leadId)) {
+      newSet.delete(leadId)
+    } else {
+      newSet.add(leadId)
+    }
+    setSelectedActionLeads(newSet)
+  }
+
+  const getInitials = (name: string) => {
+    return name.split(" ").map(n => n[0]).join("").slice(0, 2)
+  }
+
+  const getTimeAgo = (date: Date | string) => {
+    const now = new Date()
+    const past = new Date(date)
+    const diffMs = now.getTime() - past.getTime()
+    const diffMins = Math.floor(diffMs / 60000)
+    const diffHours = Math.floor(diffMs / 3600000)
+    const diffDays = Math.floor(diffMs / 86400000)
+
+    if (diffMins < 60) return `${diffMins}m`
+    if (diffHours < 24) return `${diffHours}h`
+    return `${diffDays}d`
+  }
+
   const stats = useMemo(() => {
     const totalLeads = leads.length
     const pendingLeads = leads.filter(l => getLeadStatus(l) === "pending").length
@@ -129,6 +197,28 @@ function LeadsContent() {
       return status === "manual" || status === "declined"
     })
   }, [leads])
+
+  const manualLeads = useMemo(() => {
+    return actionLeads.filter(l => getLeadStatus(l) === "manual")
+  }, [actionLeads])
+
+  const declinedLeads = useMemo(() => {
+    return actionLeads.filter(l => getLeadStatus(l) === "declined")
+  }, [actionLeads])
+
+  const reviewedToday = useMemo(() => {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    return actionLeads.filter(l => {
+      const updated = new Date(l.updatedAt || l.createdAt)
+      return updated >= today && (getLeadStatus(l) === "approved" || getLeadStatus(l) === "pending")
+    }).length
+  }, [actionLeads])
+
+  const toReviewCount = manualLeads.length + declinedLeads.length
+  const reviewedCount = reviewedToday
+  const progressPercent = toReviewCount > 0 ? Math.min((reviewedCount / toReviewCount) * 100, 100) : 0
+  const minsToFinish = Math.ceil((toReviewCount - reviewedCount) * 0.5)
 
   const sortLeads = (leadsToSort: Lead[]) => {
     return [...leadsToSort].sort((a, b) => {
@@ -167,19 +257,6 @@ function LeadsContent() {
 
     return sortLeads(filtered)
   }, [leads, searchQuery, sourceFilter, statusFilter, sortBy])
-
-  const getTimeAgo = (date: Date | string) => {
-    const now = new Date()
-    const past = new Date(date)
-    const diffMs = now.getTime() - past.getTime()
-    const diffMins = Math.floor(diffMs / 60000)
-    const diffHours = Math.floor(diffMs / 3600000)
-    const diffDays = Math.floor(diffMs / 86400000)
-
-    if (diffMins < 60) return `${diffMins}m`
-    if (diffHours < 24) return `${diffHours}h`
-    return `${diffDays}d`
-  }
 
   const renderLeadCard = (lead: Lead) => {
     const rating = getLeadRating(lead)
@@ -225,7 +302,7 @@ function LeadsContent() {
               {[...Array(5)].map((_, i) => (
                 <Star key={i} className={cn(
                   "h-3 w-3",
-                  i < rating ? "text-foreground fill-foreground" : "text-muted"
+                  i < rating ? "text-yellow-500 fill-yellow-500" : "text-muted"
                 )} />
               ))}
             </div>
@@ -264,6 +341,259 @@ function LeadsContent() {
       </div>
     )
   }
+
+  const renderActionCard = (lead: Lead, isDeclined: boolean = false, key?: string) => {
+    const rating = getLeadRating(lead)
+    const status = getLeadStatus(lead)
+    const source = getLeadSource(lead)
+    const initials = getInitials(lead.name)
+    const isSelected = selectedActionLeads.has(lead.id)
+    const aiSummary = lead.session?.ratingReason || ""
+
+    return (
+      <div
+        key={key}
+        onClick={() => setSelectedLead(lead)}
+        className={cn(
+          "bg-white border border-[#e5e7eb] rounded-xl overflow-hidden cursor-pointer hover:border-[#d1d5db] transition-colors",
+          isDeclined && "opacity-75"
+        )}
+      >
+        {/* Card Header */}
+        <div className="p-4 flex flex-col" style={{ minHeight: "200px" }}>
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-3">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-medium">
+                {initials}
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-sm font-medium">{lead.name}</h3>
+                  <span className={cn(
+                    "text-xs px-2 py-0.5 rounded-full capitalize font-medium",
+                    status === "approved" && "bg-[var(--status-approved-bg)] text-[var(--status-approved)]",
+                    status === "pending" && "bg-[var(--status-pending-bg)] text-[var(--status-pending)]",
+                    status === "manual" && "bg-[var(--status-manual-bg)] text-[var(--status-manual)]",
+                    status === "declined" && "bg-[var(--status-declined-bg)] text-[var(--status-declined)]",
+                  )}>
+                    {status}
+                  </span>
+                </div>
+                <p className="text-xs text-muted-foreground">{getTimeAgo(lead.createdAt)} · {source === "whatsapp" ? "WhatsApp" : "Email"}</p>
+              </div>
+            </div>
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                toggleSelectLead(lead.id)
+              }}
+              className="p-2 -m-2 cursor-pointer"
+            >
+              <input
+                type="checkbox"
+                checked={isSelected}
+                readOnly
+                className="h-4 w-4 rounded border-gray-300 cursor-pointer pointer-events-none"
+              />
+            </button>
+          </div>
+
+          {/* Score Row */}
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-1">
+              {[...Array(5)].map((_, i) => (
+                <Star key={i} className={cn(
+                  "h-3 w-3",
+                  i < rating ? "text-yellow-500 fill-yellow-500" : "text-muted"
+                )} />
+              ))}
+            </div>
+            <span className="text-xs px-2 py-1 bg-[#f4f4f4] rounded-[5px] font-medium">
+              {rating.toFixed(1)} / 5
+            </span>
+          </div>
+
+          {/* AI Reasoning Box */}
+          <div className="bg-[#fafaf9] border border-[#f0ede8] rounded-lg p-3 mb-3 min-h-[70px]">
+            {aiSummary ? (
+              <>
+                <div className="flex items-center gap-1.5 mb-1.5">
+                  <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#22c55e" }} />
+                  <span className="text-[10px] uppercase tracking-wide text-muted-foreground">AI REASONING</span>
+                </div>
+                <p className="text-xs text-foreground leading-relaxed">{aiSummary}</p>
+              </>
+            ) : (
+              <div className="flex items-center justify-center h-full text-xs text-muted-foreground">
+                No AI reasoning available
+              </div>
+            )}
+          </div>
+
+          {/* Semantic Tags */}
+          <div className="flex flex-wrap gap-1.5 min-h-[28px]">
+            <span className="text-[10px] px-2 py-1 bg-[#f0fdf4] text-[#166534] border border-[#bbf7d0] rounded-full">Positive signal</span>
+            <span className="text-[10px] px-2 py-1 bg-[#fffbeb] text-[#92400e] border border-[#fde68a] rounded-full">Warning signal</span>
+          </div>
+        </div>
+
+        {/* Card Actions */}
+        <div className="flex border-t border-[#e5e7eb] items-stretch">
+          {status === "declined" ? (
+            <>
+              <button
+                disabled
+                className="flex-1 px-4 py-2.5 text-sm text-muted-foreground bg-gray-50 cursor-default"
+              >
+                Already declined
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  handleApproveLead(lead.id)
+                }}
+                className="flex-1 px-4 py-2.5 text-sm font-medium text-[#16a34a] hover:bg-[#f0fdf4] transition-colors"
+              >
+                ↩ Override & approve
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  handleDeclineLead(lead.id)
+                }}
+                className="flex-1 px-4 py-2.5 text-sm text-muted-foreground hover:bg-[#fef2f2] hover:text-[#dc2626] transition-colors border-r border-[#e5e7eb]"
+              >
+                ✕ Decline
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  handleApproveLead(lead.id)
+                }}
+                className="flex-1 px-4 py-2.5 text-sm font-medium text-muted-foreground hover:bg-[#f0fdf4] hover:text-[#16a34a] transition-colors"
+              >
+                ✓ Approve
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+    )
+  }
+
+  const renderActionTab = () => (
+    <div className="space-y-6">
+      {/* Page Header */}
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-xl font-semibold" style={{ fontWeight: 600, letterSpacing: "-0.5px" }}>Needs Action</h1>
+          <p className="text-sm text-muted-foreground mt-1">Review and decide on these leads — your decisions train the AI scoring</p>
+        </div>
+        <span style={{ fontSize: "12px", padding: "6px 12px", borderRadius: "7px", border: "0.5px solid #e5e7eb", background: "white", color: "#888" }}>⌨ A = Approve · D = Decline</span>
+      </div>
+
+      {/* Progress Card */}
+      <div className="bg-white border border-[#e5e7eb] rounded-xl" style={{ padding: "16px 20px" }}>
+        <div className="flex items-center gap-6">
+          <div className="flex flex-col items-center gap-1">
+            <span style={{ fontSize: "22px", fontWeight: 600, letterSpacing: "-0.5px", color: "#f59e0b" }}>{toReviewCount}</span>
+            <span style={{ fontSize: "11px", color: "#555" }}>To review</span>
+          </div>
+          <div style={{ width: "0.5px", height: "36px", background: "#e5e7eb" }} />
+          <div className="flex flex-col items-center gap-1">
+            <span style={{ fontSize: "22px", fontWeight: 600, letterSpacing: "-0.5px", color: "#22c55e" }}>{reviewedCount}</span>
+            <span style={{ fontSize: "11px", color: "#555" }}>Done today</span>
+          </div>
+          <div style={{ width: "0.5px", height: "36px", background: "#e5e7eb" }} />
+          <div className="flex-1">
+            <div className="flex items-center justify-between mb-2">
+              <span style={{ fontSize: "11px", color: "#555" }}>Today&apos;s progress</span>
+              <span style={{ fontSize: "11px", color: "#555" }}>{reviewedCount} / {toReviewCount} reviewed</span>
+            </div>
+            <div style={{ height: "6px", background: "#f0f0f0", borderRadius: "999px", overflow: "hidden" }}>
+              <div 
+                style={{ height: "100%", width: `${progressPercent}%`, background: "#22c55e", borderRadius: "999px", transition: "width 0.5s ease-in-out" }}
+              />
+            </div>
+          </div>
+          <div style={{ width: "0.5px", height: "36px", background: "#e5e7eb" }} />
+          <div className="flex flex-col items-center gap-1">
+            <span style={{ fontSize: "22px", fontWeight: 600, letterSpacing: "-0.5px" }}>{minsToFinish > 0 ? minsToFinish : 0}</span>
+            <span style={{ fontSize: "11px", color: "#555" }}>Min to finish</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Batch Action Toolbar */}
+      <div className="bg-[#444] rounded-[10px] flex items-center" style={{ padding: "10px 16px" }}>
+        <input
+          type="checkbox"
+          checked={selectedActionLeads.size === actionLeads.length && actionLeads.length > 0}
+          onChange={toggleSelectAll}
+          className="h-4 w-4 rounded border-gray-600 bg-gray-800"
+        />
+        <span className="flex-1 ml-3" style={{ fontSize: "13px", color: "#ccc" }}>Select leads to batch approve or decline</span>
+        <div className="flex gap-2">
+          <button
+            onClick={handleBatchApprove}
+            disabled={selectedActionLeads.size === 0}
+            style={{ fontSize: "12px", padding: "5px 14px", borderRadius: "6px", background: "#22c55e", color: "white", fontWeight: 500, border: "none", cursor: selectedActionLeads.size === 0 ? "not-allowed" : "pointer", opacity: selectedActionLeads.size === 0 ? 0.5 : 1 }}
+          >
+            ✓ Approve
+          </button>
+          <button
+            onClick={handleBatchDecline}
+            disabled={selectedActionLeads.size === 0}
+            style={{ fontSize: "12px", padding: "5px 14px", borderRadius: "6px", background: "#ef4444", color: "white", fontWeight: 500, border: "none", cursor: selectedActionLeads.size === 0 ? "not-allowed" : "pointer", opacity: selectedActionLeads.size === 0 ? 0.5 : 1 }}
+          >
+            ✕ Decline
+          </button>
+        </div>
+      </div>
+
+      {/* Manual Review Section */}
+      {manualLeads.length > 0 && (
+        <div>
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-[12px] uppercase tracking-wide text-muted-foreground">Manual review</span>
+            <span className="px-2 py-0.5 text-xs bg-[#DBEAFE] text-[#2563EB] rounded-full font-medium">{manualLeads.length}</span>
+          </div>
+          <p className="text-xs text-muted-foreground mb-3">AI was unsure — your call</p>
+          <div className="h-px w-full bg-[#e5e7eb] mb-3" />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-[10px]">
+            {sortLeads(manualLeads).map((lead) => renderActionCard(lead, false, lead.id))}
+          </div>
+        </div>
+      )}
+
+      {/* AI Declined Section */}
+      {declinedLeads.length > 0 && (
+        <div>
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-[12px] uppercase tracking-wide text-muted-foreground">AI declined — override?</span>
+            <span className="px-2 py-0.5 text-xs bg-[#FEE2E2] text-[#EF4444] rounded-full font-medium">{declinedLeads.length}</span>
+          </div>
+          <p className="text-xs text-muted-foreground mb-3">AI rejected these — approve only if you disagree</p>
+          <div className="h-px w-full bg-[#e5e7eb] mb-3" />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-[10px]">
+            {sortLeads(declinedLeads).map((lead) => renderActionCard(lead, true, lead.id))}
+          </div>
+        </div>
+      )}
+
+      {/* Empty State */}
+      {actionLeads.length === 0 && (
+        <div className="text-center py-12 border border-[#e5e7eb] rounded-xl">
+          <CheckCircle2 className="h-8 w-8 mx-auto mb-2 text-[#22c55e]" />
+          <h3 className="text-base font-medium">All caught up</h3>
+          <p className="text-sm text-muted-foreground mt-1">No leads require attention</p>
+        </div>
+      )}
+    </div>
+  )
 
   const renderLeadListItem = (lead: Lead) => {
     const rating = getLeadRating(lead)
@@ -304,7 +634,7 @@ function LeadsContent() {
             {[...Array(5)].map((_, i) => (
               <Star key={i} className={cn(
                 "h-3 w-3",
-                i < rating ? "text-foreground fill-foreground" : "text-muted"
+                i < rating ? "text-yellow-500 fill-yellow-500" : "text-muted"
               )} />
             ))}
           </div>
@@ -328,7 +658,14 @@ function LeadsContent() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-xl font-semibold tracking-tight">Leads</h1>
-            <p className="text-sm text-muted-foreground mt-0.5">{leads.length} total leads</p>
+            <p className="text-sm text-muted-foreground mt-0.5">
+              {leads.length} total leads
+              {leads.length > 0 && (
+                <span className="ml-2">
+                  · Last updated {new Date(Math.max(...leads.map(l => new Date(l.updatedAt || l.createdAt).getTime()))).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </span>
+              )}
+            </p>
           </div>
           <button
             onClick={() => setShowImportModal(true)}
@@ -403,16 +740,19 @@ function LeadsContent() {
               </div>
 
               {/* Sort */}
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as SortOption)}
-                className="h-9 px-3 rounded-md border border-border bg-background text-sm appearance-none cursor-pointer"
-              >
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">Sort by:</span>
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value as SortOption)}
+                  className="h-9 px-3 rounded-md border border-border bg-background text-sm appearance-none cursor-pointer"
+                >
                 <option value="rating-high">Rating</option>
                 <option value="newest">Newest</option>
                 <option value="oldest">Oldest</option>
                 <option value="name-az">Name A-Z</option>
-              </select>
+                </select>
+              </div>
 
               {/* View Toggle */}
               <div className="flex items-center gap-0.5 border border-border rounded-md p-0.5">
@@ -469,21 +809,7 @@ function LeadsContent() {
         )}
 
         {/* Action Tab */}
-        {activeTab === "action" && (
-          <div className="space-y-6">
-            {actionLeads.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                {sortLeads(actionLeads).map((lead) => renderLeadCard(lead))}
-              </div>
-            ) : (
-              <div className="text-center py-12 border border-border rounded-lg">
-                <Check className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-                <h3 className="text-base font-medium">All caught up</h3>
-                <p className="text-sm text-muted-foreground mt-1">No leads require attention</p>
-              </div>
-            )}
-          </div>
-        )}
+        {activeTab === "action" && renderActionTab()}
       </div>
 
       {selectedLead && (

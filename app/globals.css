@@ -4,7 +4,7 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --background: #FFFFFF;
+  --background: #F5F5F4;
   --foreground: #18181B;
   --card: #FFFFFF;
   --card-foreground: #18181B;
@@ -12,16 +12,16 @@
   --popover-foreground: #18181B;
   --primary: #18181B;
   --primary-foreground: #FFFFFF;
-  --secondary: #F4F4F5;
+  --secondary: #E7E5E4;
   --secondary-foreground: #18181B;
-  --muted: #F4F4F5;
+  --muted: #E7E5E4;
   --muted-foreground: #71717A;
-  --accent: #F4F4F5;
+  --accent: #E7E5E4;
   --accent-foreground: #18181B;
   --destructive: #EF4444;
   --destructive-foreground: #FFFFFF;
-  --border: #E4E4E7;
-  --input: #E4E4E7;
+  --border: #D6D3D1;
+  --input: #D6D3D1;
   --ring: #18181B;
   --chart-1: #18181B;
   --chart-2: #52525B;
@@ -33,21 +33,21 @@
   --sidebar-foreground: #18181B;
   --sidebar-primary: #18181B;
   --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #E4E4E7;
+  --sidebar-accent: #E7E5E4;
   --sidebar-accent-foreground: #18181B;
-  --sidebar-border: #E4E4E7;
+  --sidebar-border: #D6D3D1;
   --sidebar-ring: #18181B;
   --success: #22C55E;
   --warning: #F59E0B;
   --info: #3B82F6;
-  --status-approved: #16A34A;
-  --status-approved-bg: #DCFCE7;
-  --status-pending: #D97706;
-  --status-pending-bg: #FEF3C7;
-  --status-declined: #DC2626;
-  --status-declined-bg: #FEE2E2;
   --status-manual: #2563EB;
   --status-manual-bg: #DBEAFE;
+  --status-approved: #22C55E;
+  --status-approved-bg: #DCFCE7;
+  --status-pending: #EAB308;
+  --status-pending-bg: #FEF9C3;
+  --status-declined: #EF4444;
+  --status-declined-bg: #FEE2E2;
   --theme-primary: 24 24 27;
   --theme-secondary: 113 113 122;
 }
@@ -91,8 +91,8 @@ html.dark {
   --info: #60A5FA;
   --status-approved: #4ADE80;
   --status-approved-bg: rgba(74, 222, 128, 0.15);
-  --status-pending: #FBBF24;
-  --status-pending-bg: rgba(251, 191, 36, 0.15);
+  --status-pending: #EAB308;
+  --status-pending-bg: rgba(234, 179, 8, 0.15);
   --status-declined: #F87171;
   --status-declined-bg: rgba(248, 113, 113, 0.15);
   --status-manual: #60A5FA;

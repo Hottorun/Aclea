@@ -108,7 +108,7 @@ export function AppHeader({ onRefresh, isRefreshing, notificationCount = 0, user
     })
 
   return (
-    <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
+    <header className="sticky top-0 z-50 bg-white border-b" style={{ borderBottom: "0.5px solid #e5e7eb" }}>
       <div className="flex h-14 items-center justify-between px-6">
         <div className="flex items-center gap-8">
           <button

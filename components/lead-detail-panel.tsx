@@ -187,17 +187,15 @@ export function LeadDetailPanel({ lead, onClose, onSendMessage }: LeadDetailPane
           </div>
 
           {/* Conversation Summary */}
-          {(lead.conversationSummary || collectedData.conversationSummary) && (
-            <div className="rounded-md border border-border p-3">
-              <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground mb-2">
-                <MessageSquare className="h-3.5 w-3.5" />
-                Conversation Summary
-              </div>
-              <p className="text-sm leading-relaxed">
-                {lead.conversationSummary || collectedData.conversationSummary}
-              </p>
+          <div className="rounded-md border border-border p-3">
+            <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground mb-2">
+              <MessageSquare className="h-3.5 w-3.5" />
+              Conversation Summary
             </div>
-          )}
+            <p className="text-sm leading-relaxed">
+              {lead.conversationSummary || collectedData.conversationSummary || "No conversation summary available"}
+            </p>
+          </div>
 
           {/* Action Section */}
           {status === "manual" && (
