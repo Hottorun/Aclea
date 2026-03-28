@@ -2,11 +2,11 @@
 
 import React, { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
-import { useTheme } from 'next-themes'
-import { ArrowRight, ChevronDown, CreditCard, Heart, Menu, Shield, X, Zap, Mail, Phone, MapPin, Sun, Moon, Globe, Check } from 'lucide-react'
+import { ArrowRight, ChevronDown, CreditCard, Heart, Menu, Shield, X, Zap, Mail, Phone, MapPin, Globe, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { useLanguage } from './language-provider'
+import { HeroGeometric } from '@/components/ui/shape-landing-hero'
 
 const translations = {
   de: {
@@ -220,7 +220,6 @@ function ScrollEffects() {
 
 export function LandingPage() {
   const [language, setLanguage] = useState<Language>('en')
-  const { theme, setTheme, resolvedTheme } = useTheme()
 
   useEffect(() => {
     const stored = localStorage.getItem('language') as Language | null
@@ -239,36 +238,15 @@ export function LandingPage() {
 
   return (
     <>
-      <HeroHeader t={t} language={language} toggleLanguage={toggleLanguage} theme={resolvedTheme} setTheme={setTheme} />
+      <HeroHeader t={t} language={language} toggleLanguage={toggleLanguage} />
       <ScrollEffects />
-      <main className="overflow-hidden bg-white dark:bg-slate-950 relative">
-        <section>
-          <div className="relative pt-24 md:pt-36">
-            <div className="mx-auto max-w-7xl px-6">
-              <div className="text-center sm:mx-auto lg:mr-auto lg:mt-0">
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-emerald-600/20 bg-emerald-600/10 text-emerald-700 dark:text-emerald-400 text-sm font-medium">
-                  <Zap className="size-4" />
-                  {t('badge')}
-                </div>
-
-                <h1 className="mt-8 max-w-4xl mx-auto text-balance text-6xl md:text-7xl lg:mt-16 xl:text-[5.25rem] text-slate-800">
-                  {t('title')}
-                </h1>
-                <p className="mx-auto mt-8 max-w-2xl text-balance text-lg text-slate-600">
-                  {t('subtitle')}
-                </p>
-
-                <div className="mt-12 flex flex-col items-center justify-center gap-4 md:flex-row">
-                  <Button asChild size="lg" className="rounded-xl px-8 bg-emerald-600 hover:bg-emerald-700 text-white text-base font-medium">
-                    <Link href="/contact">
-                      <span className="text-nowrap">{t('getStarted')}</span>
-                    </Link>
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
+      <HeroGeometric 
+        badge={t('badge')}
+        title1={t('title').split('.').slice(0,1).join('.')}
+        title2={t('title').split('.').slice(1,2).join('.').trim() || 'One Place.'}
+        title3={t('title').split('.').slice(2).join('.').replace(/^\s+/, '') || 'Instantly Qualified.'}
+      />
+      <main className="overflow-hidden bg-[#030303] relative z-10">
         <FeaturesSection t={t} />
         <FAQSection t={t} />
         <Footer t={t} />
@@ -281,11 +259,9 @@ interface HeroHeaderProps {
   t: (key: TranslationKey) => string
   language: Language
   toggleLanguage: () => void
-  theme?: string
-  setTheme: (theme: string) => void
 }
 
-function HeroHeader({ t, language, toggleLanguage, theme, setTheme }: HeroHeaderProps) {
+function HeroHeader({ t, language, toggleLanguage }: HeroHeaderProps) {
   const [menuState, setMenuState] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
 
@@ -306,7 +282,7 @@ function HeroHeader({ t, language, toggleLanguage, theme, setTheme }: HeroHeader
   return (
     <header>
       <nav className={cn('fixed z-20 w-full px-2 group', menuState && 'active')}>
-        <div className={cn('mx-auto mt-2 max-w-6xl px-6 transition-all duration-500 lg:px-12 border border-slate-200/30 dark:border-slate-700/30 rounded-2xl', isScrolled && 'bg-white/80 dark:bg-slate-900/50 max-w-4xl border-slate-200/60 dark:border-slate-700/60 backdrop-blur-lg lg:px-5')}>
+        <div className={cn('mx-auto mt-2 max-w-6xl px-6 transition-all duration-500 lg:px-12 border border-white/10 dark:border-white/10 rounded-2xl bg-black/50 backdrop-blur-md', isScrolled && 'bg-black/70 backdrop-blur-lg max-w-4xl border-white/20 lg:px-5')}>
           <div className="relative flex flex-wrap items-center justify-between gap-6 py-3 lg:gap-0 lg:py-4">
             <div className="flex w-full justify-between lg:w-auto">
               <Link href="/" aria-label="Startseite" className="flex items-center space-x-2">
@@ -327,7 +303,7 @@ function HeroHeader({ t, language, toggleLanguage, theme, setTheme }: HeroHeader
               <ul className="flex gap-8 text-sm">
                 {menuItems.map((item, index) => (
                   <li key={index}>
-                    <Link href={item.href} className="text-slate-600 hover:text-slate-800 block duration-150">
+                    <Link href={item.href} className="text-white/80 hover:text-white block duration-150">
                       <span>{item.name}</span>
                     </Link>
                   </li>
@@ -338,23 +314,11 @@ function HeroHeader({ t, language, toggleLanguage, theme, setTheme }: HeroHeader
             <div className={cn('bg-background mb-6 hidden w-full flex-wrap items-center justify-end space-y-8 rounded-3xl border p-6 shadow-2xl shadow-zinc-300/20 md:flex-nowrap lg:m-0 lg:flex lg:w-fit lg:gap-4 lg:space-y-0 lg:border-transparent lg:bg-transparent lg:p-0 lg:shadow-none', !menuState && 'lg:group-[.active]:flex')}>
               <button
                 onClick={toggleLanguage}
-                className="p-2 rounded-lg hover:bg-muted transition-colors cursor-pointer flex items-center gap-1"
+                className="p-2 rounded-lg hover:bg-white/10 transition-colors cursor-pointer flex items-center gap-1"
                 aria-label="Toggle language"
               >
-                <Globe className="size-5 text-emerald-600" />
-                <span className="text-sm font-medium uppercase text-slate-700 dark:text-white">{language}</span>
-              </button>
-
-              <button
-                onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                className="p-2 rounded-lg hover:bg-muted transition-colors cursor-pointer"
-                aria-label="Toggle theme"
-              >
-                {theme === 'dark' ? (
-                  <Sun className="size-5 text-amber-500" />
-                ) : (
-                  <Moon className="size-5 text-slate-600" />
-                )}
+                <Globe className="size-5 text-emerald-400" />
+                <span className="text-sm font-medium uppercase text-white">{language}</span>
               </button>
 
               <div className="lg:hidden">
@@ -369,7 +333,7 @@ function HeroHeader({ t, language, toggleLanguage, theme, setTheme }: HeroHeader
                 </ul>
               </div>
               <div className="flex w-full flex-col space-y-3 sm:flex-row sm:gap-3 sm:space-y-0 md:w-fit">
-                <Button asChild size="sm" className={cn("bg-emerald-600 hover:bg-emerald-700 text-white", isScrolled && 'lg:hidden')}>
+                <Button asChild size="sm" variant={isScrolled ? "default" : "secondary"} className={cn(isScrolled ? "bg-emerald-600 hover:bg-emerald-700" : "bg-emerald-600 hover:bg-emerald-700 text-white", isScrolled && 'lg:hidden')}>
                   <Link href="/login">{t('signIn')}</Link>
                 </Button>
                 <Button asChild size="sm" className={cn("bg-emerald-600 hover:bg-emerald-700 text-white", isScrolled && 'lg:hidden')}>
@@ -393,7 +357,7 @@ function Logo({ className }: { className?: string }) {
       <div className="flex size-8 items-center justify-center rounded-lg bg-emerald-600">
         <Zap className="size-5 text-white" />
       </div>
-      <span className="text-lg font-semibold text-slate-800 dark:text-white">Aclea</span>
+      <span className="text-lg font-semibold text-white">Aclea</span>
     </div>
   )
 }
@@ -413,17 +377,17 @@ function FeaturesSection({ t }: FeaturesSectionProps) {
   ]
 
   return (
-    <section className="py-24 relative" id="funktionen">
+    <section className="py-16 -mt-10 relative" id="funktionen">
       <div className="mx-auto max-w-7xl px-6">
         <div className="text-center mb-16">
-          <div className="inline-flex items-center gap-2 px-4 py-2 mb-6 rounded-full border border-emerald-600/20 bg-emerald-600/5">
-            <Zap className="size-4 text-emerald-600" />
-            <span className="text-sm font-medium text-emerald-600">{t('powerfulFeatures')}</span>
+          <div className="inline-flex items-center gap-2 px-4 py-2 mb-6 rounded-full border border-emerald-600/20 bg-emerald-600/10">
+            <Zap className="size-4 text-emerald-400" />
+            <span className="text-sm font-medium text-emerald-400">{t('powerfulFeatures')}</span>
           </div>
-          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl mb-4 text-balance text-slate-800">
+          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl mb-4 text-balance text-white">
             {t('features')}
           </h2>
-          <p className="max-w-2xl mx-auto text-slate-600 text-lg">
+          <p className="max-w-2xl mx-auto text-white/60 text-lg">
             {t('discoverFeatures')}
           </p>
         </div>
@@ -432,13 +396,13 @@ function FeaturesSection({ t }: FeaturesSectionProps) {
           {features.map((feature, index) => (
             <div
               key={index}
-              className="group relative rounded-2xl border bg-white p-8 transition-all duration-300 hover:border-emerald-600/30 hover:shadow-lg hover:shadow-emerald-600/5"
+              className="group relative rounded-2xl border border-white/10 bg-white/5 p-8 transition-all duration-300 hover:border-emerald-500/30 hover:bg-white/10"
             >
-              <div className="mb-4 inline-flex size-12 items-center justify-center rounded-xl bg-emerald-600/10 text-emerald-600 transition-colors group-hover:bg-emerald-600 group-hover:text-white">
+              <div className="mb-4 inline-flex size-12 items-center justify-center rounded-xl bg-emerald-600/20 text-emerald-400 transition-colors group-hover:bg-emerald-600 group-hover:text-white">
                 <feature.icon className="size-6" />
               </div>
-              <h3 className="mb-2 text-xl font-semibold text-slate-800">{t(feature.titleKey)}</h3>
-              <p className="text-slate-600">{t(feature.descKey)}</p>
+              <h3 className="mb-2 text-xl font-semibold text-white">{t(feature.titleKey)}</h3>
+              <p className="text-white/60">{t(feature.descKey)}</p>
             </div>
           ))}
         </div>
@@ -473,25 +437,25 @@ function FAQSection({ t }: FAQSectionProps) {
     <section className="py-16 md:py-24" id="faq">
       <div className="mx-auto max-w-5xl px-4 md:px-6">
         <div className="mx-auto max-w-xl text-center mb-12">
-          <h2 className="text-balance text-3xl font-bold md:text-4xl lg:text-5xl text-slate-800 dark:text-white">{t('faqTitle')}</h2>
-          <p className="text-slate-600 dark:text-slate-300 mt-4 text-balance">{t('faqDesc')}</p>
+          <h2 className="text-balance text-3xl font-bold md:text-4xl lg:text-5xl text-white">{t('faqTitle')}</h2>
+          <p className="text-white/60 mt-4 text-balance">{t('faqDesc')}</p>
         </div>
 
         <div className="mx-auto mt-12 max-w-xl space-y-4">
           {faqItems.map((item) => (
-            <details key={item.id} className="group rounded-xl border bg-white dark:bg-slate-900 p-4 open:shadow-md transition-shadow">
-              <summary className="flex items-center justify-between cursor-pointer list-none font-medium text-slate-800 dark:text-white">
+            <details key={item.id} className="group rounded-xl border border-white/10 bg-white/5 p-4 open:bg-white/10 transition-colors">
+              <summary className="flex items-center justify-between cursor-pointer list-none font-medium text-white">
                 {t(item.questionKey)}
-                <ChevronDown className="size-5 text-slate-500 dark:text-slate-400 group-open:rotate-180 transition-transform" />
+                <ChevronDown className="size-5 text-white/50 group-open:rotate-180 transition-transform" />
               </summary>
-              <p className="mt-3 text-slate-600 dark:text-slate-300">{t(item.answerKey)}</p>
+              <p className="mt-3 text-white/60">{t(item.answerKey)}</p>
             </details>
           ))}
         </div>
 
-        <p className="text-slate-600 mt-6 text-center">
+        <p className="text-white/60 mt-6 text-center">
           {t('supportText')}{' '}
-          <Link href="#kontakt" className="text-emerald-600 font-medium hover:underline">
+          <Link href="#kontakt" className="text-emerald-400 font-medium hover:underline">
             {t('supportTeam')}
           </Link>
         </p>
@@ -506,7 +470,7 @@ interface FooterProps {
 
 function Footer({ t }: FooterProps) {
   return (
-    <footer className="border-t bg-slate-50">
+    <footer className="border-t border-white/10 bg-black/50">
       <div className="mx-auto max-w-7xl px-6 py-12 md:py-16">
         <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-6">
           <div className="lg:col-span-2">
@@ -514,12 +478,12 @@ function Footer({ t }: FooterProps) {
               <div className="flex size-8 items-center justify-center rounded-lg bg-emerald-600">
                 <Zap className="size-5 text-white" />
               </div>
-              <span className="text-lg font-semibold text-slate-800">Aclea</span>
+              <span className="text-lg font-semibold text-white">Aclea</span>
             </Link>
-            <p className="mt-4 text-sm text-slate-600 max-w-xs">
+            <p className="mt-4 text-sm text-white/60 max-w-xs">
               {t('subtitle').slice(0, 100)}...
             </p>
-            <div className="mt-6 flex flex-col gap-3 text-sm text-slate-600">
+            <div className="mt-6 flex flex-col gap-3 text-sm text-white/60">
               <div className="flex items-center gap-2">
                 <Mail className="size-4" />
                 <span>kontakt@aclea.de</span>
@@ -536,59 +500,53 @@ function Footer({ t }: FooterProps) {
           </div>
 
           <div>
-            <h3 className="font-semibold mb-4 text-slate-800">{t('footerProduct')}</h3>
+            <h3 className="font-semibold mb-4 text-white">{t('footerProduct')}</h3>
             <ul className="space-y-3">
-              <li><Link href="#funktionen" className="text-sm text-slate-600 hover:text-slate-800 transition-colors">{t('footerFeatures')}</Link></li>
-              <li><Link href="#" className="text-sm text-slate-600 hover:text-slate-800 transition-colors">{t('footerPricing')}</Link></li>
-              <li><Link href="#" className="text-sm text-slate-600 hover:text-slate-800 transition-colors">{t('footerIntegrations')}</Link></li>
-              <li><Link href="#" className="text-sm text-slate-600 hover:text-slate-800 transition-colors">{t('footerAPI')}</Link></li>
+              <li><Link href="#funktionen" className="text-sm text-white/60 hover:text-white transition-colors">{t('footerFeatures')}</Link></li>
+              <li><Link href="#" className="text-sm text-white/60 hover:text-white transition-colors">{t('footerPricing')}</Link></li>
+              <li><Link href="#" className="text-sm text-white/60 hover:text-white transition-colors">{t('footerIntegrations')}</Link></li>
+              <li><Link href="#" className="text-sm text-white/60 hover:text-white transition-colors">{t('footerAPI')}</Link></li>
             </ul>
           </div>
 
           <div>
-            <h3 className="font-semibold mb-4 text-slate-800">{t('footerCompany')}</h3>
+            <h3 className="font-semibold mb-4 text-white">{t('footerCompany')}</h3>
             <ul className="space-y-3">
-              <li><Link href="#" className="text-sm text-slate-600 hover:text-slate-800 transition-colors">{t('footerAbout')}</Link></li>
-              <li><Link href="#" className="text-sm text-slate-600 hover:text-slate-800 transition-colors">{t('footerCareers')}</Link></li>
-              <li><Link href="#" className="text-sm text-slate-600 hover:text-slate-800 transition-colors">{t('footerBlog')}</Link></li>
-              <li><Link href="#" className="text-sm text-slate-600 hover:text-slate-800 transition-colors">{t('footerPress')}</Link></li>
+              <li><Link href="/about" className="text-sm text-white/60 hover:text-white transition-colors">{t('footerAbout')}</Link></li>
             </ul>
           </div>
 
           <div>
-            <h3 className="font-semibold mb-4 text-slate-800">{t('footerLegal')}</h3>
+            <h3 className="font-semibold mb-4 text-white">{t('footerLegal')}</h3>
             <ul className="space-y-3">
-              <li><Link href="#" className="text-sm text-slate-600 hover:text-slate-800 transition-colors">{t('footerImprint')}</Link></li>
-              <li><Link href="#" className="text-sm text-slate-600 hover:text-slate-800 transition-colors">{t('footerPrivacy')}</Link></li>
-              <li><Link href="#" className="text-sm text-slate-600 hover:text-slate-800 transition-colors">{t('footerTerms')}</Link></li>
-              <li><Link href="#" className="text-sm text-slate-600 hover:text-slate-800 transition-colors">{t('footerCookies')}</Link></li>
+              <li><Link href="/imprint" className="text-sm text-white/60 hover:text-white transition-colors">{t('footerImprint')}</Link></li>
+              <li><Link href="/privacy" className="text-sm text-white/60 hover:text-white transition-colors">{t('footerPrivacy')}</Link></li>
+              <li><Link href="/terms" className="text-sm text-white/60 hover:text-white transition-colors">{t('footerTerms')}</Link></li>
             </ul>
           </div>
 
           <div>
-            <h3 className="font-semibold mb-4 text-slate-800">{t('footerSupport')}</h3>
+            <h3 className="font-semibold mb-4 text-white">{t('footerSupport')}</h3>
             <ul className="space-y-3">
-              <li><Link href="#" className="text-sm text-slate-600 hover:text-slate-800 transition-colors">{t('footerHelp')}</Link></li>
-              <li><Link href="#kontakt" className="text-sm text-slate-600 hover:text-slate-800 transition-colors">{t('footerContact')}</Link></li>
-              <li><Link href="#" className="text-sm text-slate-600 hover:text-slate-800 transition-colors">{t('footerStatus')}</Link></li>
-              <li><Link href="#faq" className="text-sm text-slate-600 hover:text-slate-800 transition-colors">{t('footerFAQ')}</Link></li>
+              <li><Link href="/contact" className="text-sm text-white/60 hover:text-white transition-colors">{t('footerContact')}</Link></li>
+              <li><Link href="#faq" className="text-sm text-white/60 hover:text-white transition-colors">{t('footerFAQ')}</Link></li>
             </ul>
           </div>
         </div>
 
-        <div className="mt-12 border-t pt-8">
+        <div className="mt-12 border-t border-white/10 pt-8">
           <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
-            <p className="text-sm text-slate-600">
+            <p className="text-sm text-white/40">
               &copy; {new Date().getFullYear()} Aclea GmbH. {t('footerRights')}
             </p>
             <div className="flex items-center gap-6">
-              <Link href="#" className="text-sm text-slate-600 hover:text-slate-800 transition-colors">
+              <Link href="#" className="text-sm text-white/40 hover:text-white transition-colors">
                 {t('footerImprint')}
               </Link>
-              <Link href="#" className="text-sm text-slate-600 hover:text-slate-800 transition-colors">
+              <Link href="#" className="text-sm text-white/40 hover:text-white transition-colors">
                 {t('footerPrivacy')}
               </Link>
-              <Link href="#" className="text-sm text-slate-600 hover:text-slate-800 transition-colors">
+              <Link href="#" className="text-sm text-white/40 hover:text-white transition-colors">
                 {t('footerTerms')}
               </Link>
             </div>
