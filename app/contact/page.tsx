@@ -28,12 +28,29 @@ export default function ContactPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSubmitting(true)
+    setError("")
     
-    await new Promise(resolve => setTimeout(resolve, 1500))
-    
-    setIsSubmitting(false)
-    setIsSubmitted(true)
+    try {
+      const response = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || "Failed to send message")
+      }
+
+      setIsSubmitting(false)
+      setIsSubmitted(true)
+    } catch (err) {
+      setIsSubmitting(false)
+      setError(err instanceof Error ? err.message : "Failed to send message. Please try again.")
+    }
   }
+
+  const [error, setError] = useState("")
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData(prev => ({
@@ -185,6 +202,12 @@ export default function ContactPage() {
                   placeholder="Tell us about your needs..."
                 />
               </div>
+
+              {error && (
+                <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm text-center">
+                  {error}
+                </div>
+              )}
 
               <Button
                 type="submit"

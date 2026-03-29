@@ -284,8 +284,8 @@ function HeroHeader({ t, language, toggleLanguage }: HeroHeaderProps) {
 
   const menuItems = [
     { name: t('menuFeatures'), href: '#funktionen' },
-    { name: t('menuSolution'), href: '#link' },
-    { name: t('menuAbout'), href: '#link' },
+    { name: t('menuSolution'), href: '/solution' },
+    { name: t('menuAbout'), href: '/about' },
   ]
 
   return (
@@ -320,7 +320,10 @@ function HeroHeader({ t, language, toggleLanguage }: HeroHeaderProps) {
               </ul>
             </div>
 
-            <div className={cn('bg-background mb-6 hidden w-full flex-wrap items-center justify-end space-y-8 rounded-3xl border p-6 shadow-2xl shadow-zinc-300/20 md:flex-nowrap lg:m-0 lg:flex lg:w-fit lg:gap-4 lg:space-y-0 lg:border-transparent lg:bg-transparent lg:p-0 lg:shadow-none', !menuState && 'lg:group-[.active]:flex')}>
+            <div className={cn(
+              'absolute top-full left-2 right-2 mt-2 w-auto rounded-2xl border border-white/10 bg-black/90 backdrop-blur-md p-6 md:flex-nowrap lg:static lg:mt-0 lg:w-fit lg:gap-4 lg:space-y-0 lg:border-transparent lg:bg-transparent lg:p-0 lg:shadow-none',
+              menuState ? 'flex flex-col' : 'hidden lg:flex'
+            )}>
               <button
                 onClick={toggleLanguage}
                 className="p-2 rounded-lg hover:bg-white/10 transition-colors cursor-pointer flex items-center gap-1"
@@ -330,25 +333,22 @@ function HeroHeader({ t, language, toggleLanguage }: HeroHeaderProps) {
                 <span className="text-sm font-medium uppercase text-white">{language}</span>
               </button>
 
-              <div className="lg:hidden">
-                <ul className="space-y-6 text-base">
+              <div className="lg:hidden mt-4 pt-4 border-t border-white/10">
+                <ul className="space-y-4 text-base">
                   {menuItems.map((item, index) => (
                     <li key={index}>
-                      <Link href={item.href} className="text-slate-700 dark:text-white hover:text-slate-900 dark:hover:text-slate-200 block duration-150">
+                      <Link href={item.href} className="text-white/80 hover:text-white block duration-150">
                         <span>{item.name}</span>
                       </Link>
                     </li>
                   ))}
                 </ul>
               </div>
-              <div className="flex w-full flex-col space-y-3 sm:flex-row sm:gap-3 sm:space-y-0 md:w-fit">
-                <Button asChild size="sm" variant={isScrolled ? "default" : "secondary"} className={cn(isScrolled ? "bg-emerald-600 hover:bg-emerald-700" : "bg-emerald-600 hover:bg-emerald-700 text-white", isScrolled && 'lg:hidden')}>
+              <div className="flex w-full flex-col space-y-3 lg:flex-row lg:gap-3 lg:space-y-0 lg:w-fit lg:hidden">
+                <Button asChild size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white">
                   <Link href="/login">{t('signIn')}</Link>
                 </Button>
-                <Button asChild size="sm" className={cn("bg-emerald-600 hover:bg-emerald-700 text-white", isScrolled && 'lg:hidden')}>
-                  <Link href="/contact">{t('getStarted')}</Link>
-                </Button>
-                <Button asChild size="sm" className={cn("bg-emerald-600 hover:bg-emerald-700 text-white", !isScrolled && 'hidden')}>
+                <Button asChild size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white">
                   <Link href="/contact">{t('getStarted')}</Link>
                 </Button>
               </div>

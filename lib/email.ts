@@ -242,3 +242,38 @@ export async function sendPasswordChangedNotification(email: string, name: strin
   `
   return sendEmail({ to: email, subject, html })
 }
+
+export async function sendContactFormEmail(data: { name: string; email: string; company?: string; message: string }) {
+  const { name, email, company, message } = data
+  const subject = `New Contact Form Submission from ${name}`
+  const html = `
+    <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+      <div style="text-align: center; margin-bottom: 24px;">
+        <div style="display: inline-flex; align-items: center; gap: 8px;">
+          <div style="width: 40px; height: 40px; background: #059669; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+            </svg>
+          </div>
+          <span style="font-size: 24px; font-weight: 600; color: #1f2937;">Aclea</span>
+        </div>
+      </div>
+      <h2 style="color: #1f2937; margin-bottom: 16px;">New Contact Form Submission</h2>
+      <p style="color: #4b5563; line-height: 1.6;">You have received a new message from your website contact form:</p>
+      <div style="background: #f9fafb; border-radius: 8px; padding: 16px; margin: 16px 0;">
+        <p style="margin: 0 0 8px 0;"><strong style="color: #374151;">Name:</strong> <span style="color: #4b5563;">${name}</span></p>
+        <p style="margin: 0 0 8px 0;"><strong style="color: #374151;">Email:</strong> <a href="mailto:${email}" style="color: #059669;">${email}</a></p>
+        ${company ? `<p style="margin: 0 0 8px 0;"><strong style="color: #374151;">Company:</strong> <span style="color: #4b5563;">${company}</span></p>` : ''}
+        <p style="margin: 0;"><strong style="color: #374151;">Message:</strong></p>
+        <p style="color: #4b5563; margin: 8px 0 0 0; white-space: pre-wrap;">${message}</p>
+      </div>
+      <p style="color: #9ca3af; font-size: 12px;">Reply directly to this email to respond to ${name}.</p>
+      <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;">
+      <p style="color: #9ca3af; font-size: 12px; text-align: center;">
+        © ${new Date().getFullYear()} Aclea GmbH. All rights reserved.<br>
+        Berlin, Deutschland
+      </p>
+    </div>
+  `
+  return sendEmail({ to: "contact@aclea.de", subject, html })
+}
