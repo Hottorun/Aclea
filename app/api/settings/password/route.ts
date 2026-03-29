@@ -1,22 +1,11 @@
 import { NextResponse } from "next/server"
-import { cookies } from "next/headers"
-import { updateUserPassword, getUserProfile } from "@/lib/supabase"
+import { updateUserPassword, getUserProfile, getSupabase } from "@/lib/supabase"
 import { sendPasswordChangedNotification } from "@/lib/email"
+import { getCurrentUser } from "@/lib/auth"
+import bcrypt from "bcryptjs"
 
-interface User {
-  id: string
-}
-
-async function getCurrentUser(): Promise<User | null> {
-  const cookieStore = await cookies()
-  const token = cookieStore.get("auth_token")
-  if (!token) return null
-  try {
-    return JSON.parse(token.value) as User
-  } catch {
-    return null
-  }
-}
+// Same rules enforced across all password-setting flows
+const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])/
 
 export async function POST(request: Request) {
   try {
@@ -32,19 +21,39 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Current password and new password are required" }, { status: 400 })
     }
 
-    if (newPassword.length < 6) {
-      return NextResponse.json({ error: "New password must be at least 6 characters" }, { status: 400 })
+    if (newPassword.length < 8 || !PASSWORD_REGEX.test(newPassword)) {
+      return NextResponse.json(
+        { error: "New password must be at least 8 characters and contain uppercase, lowercase, a number, and a special character (!@#$%^&*)" },
+        { status: 400 }
+      )
     }
 
-    // In a real app, you'd verify the current password against the hash
-    // For now, we'll just update to the new password
+    const supabase = getSupabase()
+    if (!supabase) {
+      return NextResponse.json({ error: "Service unavailable" }, { status: 503 })
+    }
+
+    // Fetch stored hash and verify the caller actually knows the current password
+    const { data: userData, error: fetchError } = await supabase
+      .from("users")
+      .select("password")
+      .eq("id", user.id)
+      .single()
+
+    if (fetchError || !userData) {
+      return NextResponse.json({ error: "Failed to verify current password" }, { status: 500 })
+    }
+
+    const isValid = await bcrypt.compare(currentPassword, userData.password)
+    if (!isValid) {
+      return NextResponse.json({ error: "Current password is incorrect" }, { status: 400 })
+    }
+
     const success = await updateUserPassword(user.id, newPassword)
-    
     if (!success) {
       return NextResponse.json({ error: "Failed to update password" }, { status: 500 })
     }
 
-    // Get user info for the notification email
     const profile = await getUserProfile(user.id)
     if (profile?.email) {
       await sendPasswordChangedNotification(profile.email, profile.name || "User")

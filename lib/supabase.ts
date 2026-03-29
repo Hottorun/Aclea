@@ -65,11 +65,7 @@ let inMemorySettings: AppSettings = {
 export async function getLeads(teamId?: string): Promise<Lead[]> {
   const client = getSupabase()
   
-  console.log("getLeads called with teamId:", teamId)
-  console.log("Supabase client available:", !!client)
-  
   if (!client) {
-    console.log("No supabase client - using in-memory leads")
     let leads = inMemoryLeads
     if (teamId) {
       leads = leads.filter(lead => lead.teamId === teamId)
@@ -88,12 +84,7 @@ export async function getLeads(teamId?: string): Promise<Lead[]> {
     leadsQuery.eq("teams_id", teamId)
   }
 
-  console.log("Fetching leads from database...")
-  
   const { data: leadsData, error: leadsError } = await leadsQuery
-
-  console.log("Leads data:", leadsData)
-  console.log("Leads error:", leadsError)
 
   if (leadsError) {
     console.error("Error fetching leads:", leadsError)
@@ -101,11 +92,8 @@ export async function getLeads(teamId?: string): Promise<Lead[]> {
   }
 
   if (!leadsData || leadsData.length === 0) {
-    console.log("No leads found in database")
     return []
   }
-
-  console.log("Found", leadsData.length, "leads")
 
   const leadIds = leadsData.map(l => l.id)
 
@@ -114,9 +102,6 @@ export async function getLeads(teamId?: string): Promise<Lead[]> {
     .select("*")
     .in("leads_id", leadIds)
     .order("created_at", { ascending: false })
-
-  console.log("Sessions data:", sessionsData)
-  console.log("Sessions error:", sessionsError)
 
   if (sessionsError) {
     console.error("Error fetching sessions:", sessionsError)

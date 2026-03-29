@@ -58,10 +58,7 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: "Session ID required" }, { status: 400 })
     }
 
-    // In a real app, you'd delete the session from the database
-    // For now, just return success
-    console.log("Revoking session:", sessionId, "for user:", user.id)
-
+    // Session revocation is a no-op until a server-side session store is implemented
     return NextResponse.json({ success: true })
   } catch (err) {
     console.error("Error revoking session:", err)

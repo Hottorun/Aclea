@@ -1,16 +1,8 @@
 import { NextResponse } from "next/server"
 import { cookies } from "next/headers"
-import { createClient, SupabaseClient } from "@supabase/supabase-js"
+import { getSupabase } from "@/lib/supabase"
 import bcrypt from "bcryptjs"
-
-interface User {
-  id: string
-  email: string
-  name: string
-  role: "admin" | "user"
-  teamId?: string
-  teamRole?: "owner" | "admin" | "member"
-}
+import type { User } from "@/lib/auth"
 
 interface DbUser extends User {
   password: string
@@ -18,28 +10,8 @@ interface DbUser extends User {
   team_role?: string
 }
 
-interface TeamInfo {
-  team_id?: string
-  team_role?: string
-}
-
-function getSupabase(): SupabaseClient | null {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const supabaseKey = process.env.SUPABASE_SECRET_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-  
-  if (!supabaseUrl || !supabaseKey) {
-    return null
-  }
-  
-  return createClient(supabaseUrl, supabaseKey)
-}
-
 async function verifyPassword(password: string, hashedPassword: string): Promise<boolean> {
   return bcrypt.compare(password, hashedPassword)
-}
-
-async function hashPassword(password: string): Promise<string> {
-  return bcrypt.hash(password, 12)
 }
 
 async function getUserByEmail(email: string): Promise<DbUser | null> {
@@ -91,37 +63,15 @@ export async function POST(request: Request) {
       )
     }
     
-    console.log("Auth - userData from DB:", userData)
-    
-    // Fetch fresh team info from database
-    let teamId = userData.team_id
-    let teamRole = userData.team_role
-    
-    const supabaseClient = getSupabase()
-    if (supabaseClient && userData.id) {
-      const { data: freshData } = await supabaseClient
-        .from("users")
-        .select("team_id, team_role")
-        .eq("id", userData.id)
-        .single()
-      
-      if (freshData) {
-        teamId = freshData.team_id
-        teamRole = freshData.team_role
-      }
-    }
-    
-    const user: User = { 
-      id: userData.id, 
-      email: userData.email, 
-      name: userData.name, 
+    const user: User = {
+      id: userData.id,
+      email: userData.email,
+      name: userData.name,
       role: userData.role,
-      teamId: teamId,
-      teamRole: teamRole as "owner" | "admin" | "member" | undefined,
+      teamId: userData.team_id,
+      teamRole: userData.team_role as "owner" | "admin" | "member" | undefined,
     }
 
-    console.log("Auth - created user object with team:", user)
-    
     const cookieStore = await cookies()
     cookieStore.set("auth_token", JSON.stringify(user), {
       httpOnly: true,

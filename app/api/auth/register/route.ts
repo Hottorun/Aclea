@@ -1,20 +1,11 @@
 import { NextResponse } from "next/server"
 import { cookies } from "next/headers"
+import { createClient } from "@supabase/supabase-js"
 import bcrypt from "bcryptjs"
 import { sendWelcomeEmail } from "@/lib/email"
+import type { User } from "@/lib/auth"
 
-interface User {
-  id: string
-  email: string
-  name: string
-  role: "admin" | "user"
-  teamId?: string
-  teamRole?: "owner" | "admin" | "member"
-}
-
-async function hashPassword(password: string): Promise<string> {
-  return bcrypt.hash(password, 12)
-}
+const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])/
 
 export async function POST(request: Request) {
   try {
@@ -23,27 +14,24 @@ export async function POST(request: Request) {
 
     if (!name || !email || !password) {
       return NextResponse.json(
-        { error: "Name, E-Mail und Passwort sind erforderlich" },
+        { error: "Name, email, and password are required" },
         { status: 400 }
       )
     }
 
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])/
-    if (password.length < 8 || !passwordRegex.test(password)) {
+    if (password.length < 8 || !PASSWORD_REGEX.test(password)) {
       return NextResponse.json(
-        { error: "Passwort erfullt nicht die Anforderungen" },
+        { error: "Password must be at least 8 characters and contain uppercase, lowercase, a number, and a special character (!@#$%^&*)" },
         { status: 400 }
       )
     }
 
-    const { createClient, SupabaseClient } = await import("@supabase/supabase-js")
-    
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
     const supabaseKey = process.env.SUPABASE_SECRET_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-    
+
     if (!supabaseUrl || !supabaseKey) {
       return NextResponse.json(
-        { error: "Authentifizierung nicht konfiguriert. Bitte kontaktieren Sie den Administrator." },
+        { error: "Authentication not configured. Please contact the administrator." },
         { status: 500 }
       )
     }
@@ -58,12 +46,12 @@ export async function POST(request: Request) {
 
     if (existingUser && existingUser.length > 0) {
       return NextResponse.json(
-        { error: "Diese E-Mail-Adresse ist bereits registriert" },
+        { error: "This email address is already registered" },
         { status: 400 }
       )
     }
 
-    const hashedPassword = await hashPassword(password)
+    const hashedPassword = await bcrypt.hash(password, 12)
 
     let teamId: string | undefined
     let teamRole: "owner" | "admin" | "member" = "member"
@@ -80,7 +68,7 @@ export async function POST(request: Request) {
         teamRole = "member"
       } else {
         return NextResponse.json(
-          { error: "Ungultiger Einladungscode" },
+          { error: "Invalid invite code" },
           { status: 400 }
         )
       }
@@ -102,7 +90,7 @@ export async function POST(request: Request) {
     if (createError || !newUser) {
       console.error("Error creating user:", createError)
       return NextResponse.json(
-        { error: "Fehler beim Erstellen des Kontos" },
+        { error: "Failed to create account" },
         { status: 500 }
       )
     }
@@ -135,7 +123,7 @@ export async function POST(request: Request) {
   } catch (err) {
     console.error("Registration error:", err)
     return NextResponse.json(
-      { error: "Registrierung fehlgeschlagen" },
+      { error: "Registration failed" },
       { status: 500 }
     )
   }

@@ -2,6 +2,9 @@ import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import bcrypt from "bcryptjs"
 
+// Same rules enforced at registration
+const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])/
+
 export async function POST(request: Request) {
   try {
     const body = await request.json()
@@ -14,9 +17,9 @@ export async function POST(request: Request) {
       )
     }
 
-    if (password.length < 8) {
+    if (password.length < 8 || !PASSWORD_REGEX.test(password)) {
       return NextResponse.json(
-        { error: "Password must be at least 8 characters" },
+        { error: "Password must be at least 8 characters and contain uppercase, lowercase, a number, and a special character (!@#$%^&*)" },
         { status: 400 }
       )
     }

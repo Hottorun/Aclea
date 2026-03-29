@@ -1,6 +1,15 @@
 import { Resend } from "resend"
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+// Lazily initialise so a missing key doesn't crash modules that import this
+// file in environments where email is not needed (e.g. local dev without .env)
+let _resend: Resend | null = null
+function getResend(): Resend | null {
+  if (_resend) return _resend
+  const key = process.env.RESEND_API_KEY
+  if (!key) return null
+  _resend = new Resend(key)
+  return _resend
+}
 
 const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || "Aclea <noreply@aclea.de>"
 
@@ -11,6 +20,11 @@ export interface EmailParams {
 }
 
 export async function sendEmail({ to, subject, html }: EmailParams) {
+  const resend = getResend()
+  if (!resend) {
+    console.error("Email not sent: RESEND_API_KEY is not configured")
+    return { success: false, error: "Email service not configured" }
+  }
   try {
     const data = await resend.emails.send({
       from: FROM_EMAIL,
