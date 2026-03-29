@@ -333,6 +333,14 @@ function HeroHeader({ t, language, toggleLanguage }: HeroHeaderProps) {
                 <span className="text-sm font-medium uppercase text-white">{language}</span>
               </button>
 
+              <div className="hidden lg:flex lg:items-center lg:gap-4">
+                <Button asChild size="sm" variant="ghost" className="text-white/80 hover:text-white hover:bg-white/10">
+                  <Link href="/login">{t('signIn')}</Link>
+                </Button>
+                <Button asChild size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white">
+                  <Link href="/contact">{t('getStarted')}</Link>
+                </Button>
+              </div>
               <div className="lg:hidden mt-4 pt-4 border-t border-white/10">
                 <ul className="space-y-4 text-base">
                   {menuItems.map((item, index) => (
@@ -343,14 +351,14 @@ function HeroHeader({ t, language, toggleLanguage }: HeroHeaderProps) {
                     </li>
                   ))}
                 </ul>
-              </div>
-              <div className="flex w-full flex-col space-y-3 lg:flex-row lg:gap-3 lg:space-y-0 lg:w-fit lg:hidden">
-                <Button asChild size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white">
-                  <Link href="/login">{t('signIn')}</Link>
-                </Button>
-                <Button asChild size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white">
-                  <Link href="/contact">{t('getStarted')}</Link>
-                </Button>
+                <div className="flex flex-col space-y-3 mt-6">
+                  <Button asChild size="sm" variant="outline" className="border-white/20 text-white hover:bg-white/10">
+                    <Link href="/login">{t('signIn')}</Link>
+                  </Button>
+                  <Button asChild size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white">
+                    <Link href="/contact">{t('getStarted')}</Link>
+                  </Button>
+                </div>
               </div>
             </div>
           </div>

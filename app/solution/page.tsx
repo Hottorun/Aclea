@@ -104,10 +104,7 @@ export default function SolutionPage() {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button asChild size="lg" className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl">
-                <Link href="/contact">Get Started Free</Link>
-              </Button>
-              <Button asChild size="lg" variant="outline" className="border-white/20 text-white hover:bg-white/10 rounded-xl">
-                <Link href="/contact">Book a Demo</Link>
+                <Link href="/contact">Get Started</Link>
               </Button>
             </div>
           </div>
@@ -260,7 +257,7 @@ export default function SolutionPage() {
           </div>
 
           {/* CTA */}
-          <div className="text-center p-12 rounded-3xl border border-emerald-500/20 bg-gradient-to-b from-emerald-600/10 to-transparent">
+          <div className="text-center p-12 rounded-3xl border border-white/10 bg-black">
             <Clock className="size-12 text-emerald-400 mx-auto mb-6" />
             <h2 className="text-3xl font-bold mb-4">Ready to Qualify Leads Smarter?</h2>
             <p className="text-white/60 mb-8 max-w-xl mx-auto">
@@ -268,9 +265,6 @@ export default function SolutionPage() {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button asChild size="lg" className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl">
-                <Link href="/contact">Start Free Trial</Link>
-              </Button>
-              <Button asChild size="lg" variant="outline" className="border-white/20 text-white hover:bg-white/10 rounded-xl">
                 <Link href="/contact">Talk to Sales</Link>
               </Button>
             </div>
