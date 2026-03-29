@@ -165,18 +165,18 @@ export default function DashboardPage() {
           <div className="flex items-center gap-2">
             <p className="text-sm font-medium truncate">{lead.name}</p>
             {showBadge && isOverdue && (
-              <span style={{ background: "#fff7ed", color: "#c2410c", borderRadius: "4px", padding: "2px 6px", fontSize: "11px", fontWeight: 500 }}>
+              <span className="px-1.5 py-0.5 rounded text-[11px] font-medium bg-[var(--status-pending-bg)] text-[var(--status-pending)]">
                 Review
               </span>
             )}
           </div>
           <p className="text-xs text-muted-foreground truncate">{segment}</p>
         </div>
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-0.5">
           {[...Array(5)].map((_, i) => (
             <Star key={i} className={cn(
               "h-3 w-3",
-              i < getRating(lead) ? "text-yellow-500 fill-yellow-500" : "text-muted"
+              i < getRating(lead) ? "text-yellow-400 fill-yellow-400" : "text-border"
             )} />
           ))}
         </div>
@@ -201,7 +201,7 @@ export default function DashboardPage() {
           {/* Centered Greeting with AI Badge */}
           <div className="text-center py-6">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-muted text-xs text-muted-foreground mb-4">
-              <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#22c55e" }} />
+              <span className="w-1.5 h-1.5 rounded-full bg-[var(--status-approved)]" />
               AI-Powered Lead Management
             </div>
             <h1 className="text-2xl font-semibold tracking-tight" style={{ fontWeight: 600, letterSpacing: "-0.5px" }}>
@@ -212,24 +212,24 @@ export default function DashboardPage() {
 
           {/* Stats Bar */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <Link href="/leads" className="rounded-lg border border-border bg-card p-4 hover:border-foreground/30 transition-colors" style={{ borderLeft: "3px solid #111" }}>
+            <Link href="/leads" className="rounded-lg border border-border bg-card p-4 hover:border-foreground/30 transition-colors border-l-2 border-l-foreground/20">
               <p className="text-xs text-muted-foreground">Total Leads</p>
-              <p className="text-3xl font-semibold mt-1" style={{ letterSpacing: "-1px" }}>{stats.totalLeads}</p>
+              <p className="text-3xl font-semibold mt-1 tracking-tight">{stats.totalLeads}</p>
               <p className="text-xs text-muted-foreground mt-1">{stats.totalLeads > 0 ? "All time" : "No leads yet"}</p>
             </Link>
             <Link href="/leads?sort=newest" className="rounded-lg border border-border bg-card p-4 hover:border-foreground/30 transition-colors">
               <p className="text-xs text-muted-foreground">New Today</p>
-              <p className="text-3xl font-semibold mt-1" style={{ letterSpacing: "-1px" }}>{stats.newToday}</p>
+              <p className="text-3xl font-semibold mt-1 tracking-tight">{stats.newToday}</p>
               <p className="text-xs text-muted-foreground mt-1">{stats.newToday > 0 ? "Ready to contact" : "No new leads"}</p>
             </Link>
-            <Link href="/leads?tab=action" className="rounded-lg border border-border bg-card p-4 hover:border-foreground/30 transition-colors" style={{ borderLeft: "3px solid #f59e0b" }}>
+            <Link href="/leads?tab=action" className="rounded-lg border border-border bg-card p-4 hover:border-foreground/30 transition-colors border-l-2 border-l-[var(--status-pending)]">
               <p className="text-xs text-muted-foreground">Needs Review</p>
-              <p className="text-3xl font-semibold mt-1" style={{ letterSpacing: "-1px" }}>{stats.pending}</p>
+              <p className="text-3xl font-semibold mt-1 tracking-tight">{stats.pending}</p>
               <p className="text-xs text-muted-foreground mt-1">{stats.pending > 0 ? "Action required" : "All caught up"}</p>
             </Link>
-            <Link href="/leads?filter=approved" className="rounded-lg border border-border bg-card p-4 hover:border-foreground/30 transition-colors" style={{ borderLeft: "3px solid #22c55e" }}>
+            <Link href="/leads?filter=approved" className="rounded-lg border border-border bg-card p-4 hover:border-foreground/30 transition-colors border-l-2 border-l-[var(--status-approved)]">
               <p className="text-xs text-muted-foreground">Approved</p>
-              <p className="text-3xl font-semibold mt-1" style={{ letterSpacing: "-1px" }}>{stats.approved}</p>
+              <p className="text-3xl font-semibold mt-1 tracking-tight">{stats.approved}</p>
               <p className="text-xs text-muted-foreground mt-1">{stats.approved > 0 ? "Ready to convert" : "No approved leads"}</p>
             </Link>
           </div>
@@ -240,10 +240,10 @@ export default function DashboardPage() {
             <div className="rounded-lg border border-border bg-card overflow-hidden">
               <div className="px-4 py-3 border-b border-border flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <div style={{ width: "20px", height: "20px", borderRadius: "6px", background: "#f4f4f4", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <Star className="h-4 w-4 text-muted-foreground" />
+                  <div className="flex h-5 w-5 items-center justify-center rounded-md bg-muted">
+                    <Star className="h-3 w-3 text-muted-foreground" />
                   </div>
-                  <h2 className="text-sm font-medium" style={{ fontWeight: 600, letterSpacing: "-0.5px" }}>Top Leads</h2>
+                  <h2 className="text-sm font-semibold tracking-tight">Top Leads</h2>
                 </div>
                 <Link href="/leads" className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1">
                   View all <ArrowRight className="h-3 w-3" />
@@ -264,10 +264,10 @@ export default function DashboardPage() {
             <div className="rounded-lg border border-border bg-card overflow-hidden">
               <div className="px-4 py-3 border-b border-border flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <div style={{ width: "20px", height: "20px", borderRadius: "6px", background: "#f4f4f4", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <Clock className="h-4 w-4 text-muted-foreground" />
+                  <div className="flex h-5 w-5 items-center justify-center rounded-md bg-muted">
+                    <Clock className="h-3 w-3 text-muted-foreground" />
                   </div>
-                  <h2 className="text-sm font-medium" style={{ fontWeight: 600, letterSpacing: "-0.5px" }}>Needs Attention</h2>
+                  <h2 className="text-sm font-semibold tracking-tight">Needs Attention</h2>
                 </div>
                 <Link href="/leads?tab=action" className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1">
                   View all <ArrowRight className="h-3 w-3" />

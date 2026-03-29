@@ -31,13 +31,13 @@ const passwordRequirements: PasswordRequirement[] = [
 
 function getPasswordStrength(password: string): { score: number; label: string; color: string } {
   const passed = passwordRequirements.filter((req) => req.test(password)).length
-  
+
   if (password.length === 0) return { score: 0, label: "", color: "" }
-  if (passed <= 1) return { score: 1, label: "Weak", color: "bg-red-500" }
-  if (passed <= 2) return { score: 2, label: "Fair", color: "bg-orange-500" }
-  if (passed <= 3) return { score: 3, label: "Good", color: "bg-yellow-500" }
-  if (passed <= 4) return { score: 4, label: "Strong", color: "bg-emerald-500" }
-  return { score: 5, label: "Very strong", color: "bg-emerald-600" }
+  if (passed <= 1) return { score: 1, label: "Weak", color: "bg-destructive" }
+  if (passed <= 2) return { score: 2, label: "Fair", color: "bg-[var(--status-pending)]" }
+  if (passed <= 3) return { score: 3, label: "Good", color: "bg-[var(--status-pending)]" }
+  if (passed <= 4) return { score: 4, label: "Strong", color: "bg-[var(--status-approved)]" }
+  return { score: 5, label: "Very strong", color: "bg-[var(--status-approved)]" }
 }
 
 export default function RegisterPage() {
@@ -142,15 +142,15 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-emerald-50/30 dark:to-emerald-950/10 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <div className="w-full max-w-md">
-        <div className="bg-card rounded-2xl border shadow-xl p-8">
+        <div className="bg-card rounded-2xl border border-border shadow-xl p-8">
           <div className="flex flex-col items-center mb-8">
             <Link href="/" className="flex items-center gap-2 mb-4">
-              <div className="flex size-12 items-center justify-center rounded-xl bg-emerald-600">
-                <Zap className="size-6 text-white" />
+              <div className="flex size-10 items-center justify-center rounded-xl bg-foreground">
+                <Zap className="size-5 text-background" />
               </div>
-              <span className="text-2xl font-bold text-foreground">aclea</span>
+              <span className="text-xl font-bold text-foreground">aclea</span>
             </Link>
             <h1 className="text-xl font-semibold text-foreground">{t("createAccount")}</h1>
             <p className="text-muted-foreground mt-1">{t("signUp")}</p>
@@ -217,13 +217,7 @@ export default function RegisterPage() {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between text-xs text-muted-foreground">
                     <span>{t("passwordStrength")}:</span>
-                    <span className={cn(
-                      passwordStrength.score >= 4 ? "text-emerald-600 font-medium" :
-                      passwordStrength.score >= 2 ? "text-yellow-600 font-medium" :
-                      "text-red-600 font-medium"
-                    )}>
-                      {passwordStrength.label}
-                    </span>
+                    <span className="font-medium text-foreground">{passwordStrength.label}</span>
                   </div>
                   <div className="flex gap-1">
                     {[1, 2, 3, 4, 5].map((level) => (
@@ -242,7 +236,7 @@ export default function RegisterPage() {
                         key={index}
                         className={cn(
                           "text-xs flex items-center gap-2 transition-colors",
-                          req.test(password) ? "text-emerald-600" : "text-muted-foreground"
+                          req.test(password) ? "text-foreground" : "text-muted-foreground"
                         )}
                       >
                         {req.test(password) ? (
@@ -309,7 +303,7 @@ export default function RegisterPage() {
 
             <Button
               type="submit"
-              className="w-full bg-emerald-600 hover:bg-emerald-700"
+              className="w-full bg-foreground text-background hover:bg-foreground/90"
               disabled={isLoading || !!emailError || !allRequirementsMet || !passwordsMatch}
             >
               {isLoading ? (
@@ -326,7 +320,7 @@ export default function RegisterPage() {
           <div className="mt-6">
             <p className="text-center text-sm text-muted-foreground">
               {t("alreadyHaveAccount")}{" "}
-              <Link href="/login" className="text-emerald-600 hover:text-emerald-700 font-medium">
+              <Link href="/login" className="text-foreground hover:text-foreground/80 font-medium transition-colors">
                 {t("signIn")}
               </Link>
             </p>

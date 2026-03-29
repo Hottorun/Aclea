@@ -61,6 +61,20 @@ export default function LoginPage() {
         return
       }
 
+      // Apply user's saved theme before navigating
+      try {
+        const settingsRes = await fetch("/api/settings/user")
+        const settingsData = await settingsRes.json()
+        if (settingsData?.theme) {
+          localStorage.setItem("theme", settingsData.theme)
+          if (settingsData.theme === "dark") {
+            document.documentElement.classList.add("dark")
+          } else {
+            document.documentElement.classList.remove("dark")
+          }
+        }
+      } catch {}
+
       router.push("/dashboard")
       router.refresh()
     } catch {
@@ -71,25 +85,25 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-white dark:bg-slate-950 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <div className="w-full max-w-md">
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xl p-8">
+        <div className="bg-card rounded-2xl border border-border shadow-xl p-8">
           <div className="flex flex-col items-center mb-8">
             <Link href="/" className="flex items-center gap-2 mb-4">
-              <div className="flex size-12 items-center justify-center rounded-xl bg-emerald-600">
-                <Zap className="size-6 text-white" />
+              <div className="flex size-10 items-center justify-center rounded-xl bg-foreground">
+                <Zap className="size-5 text-background" />
               </div>
-              <span className="text-2xl font-bold text-slate-800 dark:text-white">aclea</span>
+              <span className="text-xl font-bold text-foreground">aclea</span>
             </Link>
-            <h1 className="text-xl font-semibold text-slate-800 dark:text-white">{t("welcomeBack")}</h1>
-            <p className="text-slate-600 dark:text-slate-400 mt-1">{t("signInToManage")}</p>
+            <h1 className="text-xl font-semibold text-foreground">{t("welcomeBack")}</h1>
+            <p className="text-muted-foreground mt-1 text-sm">{t("signInToManage")}</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-sm font-medium text-slate-700 dark:text-slate-300">{t("email")}</Label>
+              <Label htmlFor="email" className="text-sm font-medium text-foreground">{t("email")}</Label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-slate-500" />
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
                 <Input
                   id="email"
                   type="email"
@@ -97,20 +111,20 @@ export default function LoginPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="pl-10 cursor-text bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white"
+                  className="pl-10 cursor-text"
                 />
               </div>
             </div>
 
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label htmlFor="password" className="text-sm font-medium text-slate-700 dark:text-slate-300">{t("password")}</Label>
-                <Link href="/forgot-password" className="text-xs text-emerald-600 hover:text-emerald-700 font-medium">
+                <Label htmlFor="password" className="text-sm font-medium text-foreground">{t("password")}</Label>
+                <Link href="/forgot-password" className="text-xs text-muted-foreground hover:text-foreground font-medium transition-colors">
                   {t("forgot")}?
                 </Link>
               </div>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-slate-500" />
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
                 <Input
                   id="password"
                   type="password"
@@ -118,7 +132,7 @@ export default function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="pl-10 cursor-text bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white"
+                  className="pl-10 cursor-text"
                 />
               </div>
             </div>
@@ -127,7 +141,7 @@ export default function LoginPage() {
               <p className="text-sm text-destructive text-center bg-destructive/10 py-2 rounded-lg">{error}</p>
             )}
 
-            <Button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-700 text-white" disabled={isLoading}>
+            <Button type="submit" className="w-full bg-foreground text-background hover:bg-foreground/90" disabled={isLoading}>
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -142,23 +156,23 @@ export default function LoginPage() {
           <div className="mt-6">
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-slate-300 dark:border-slate-700" />
+                <div className="w-full border-t border-border" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-white dark:bg-slate-900 px-2 text-slate-500">{t("or")}</span>
+                <span className="bg-card px-2 text-muted-foreground">{t("or")}</span>
               </div>
             </div>
 
-            <p className="mt-4 text-center text-sm text-slate-600 dark:text-slate-400">
+            <p className="mt-4 text-center text-sm text-muted-foreground">
               {t("noAccount")}{" "}
-              <Link href="/register" className="text-emerald-600 hover:text-emerald-700 font-medium">
+              <Link href="/register" className="text-foreground hover:text-foreground/80 font-medium transition-colors">
                 {t("signUpNow")}
               </Link>
             </p>
           </div>
         </div>
 
-        <Link href="/" className="flex items-center justify-center gap-2 mt-6 text-sm text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white transition-colors">
+        <Link href="/" className="flex items-center justify-center gap-2 mt-6 text-sm text-muted-foreground hover:text-foreground transition-colors">
           <ArrowLeft className="size-4" />
           {t("backToHome")}
         </Link>

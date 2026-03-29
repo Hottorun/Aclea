@@ -1,12 +1,12 @@
 "use client"
 
-import { useState, useMemo, useEffect, Suspense } from "react"
+import { useState, useMemo, useEffect, useRef, Suspense } from "react"
 import useSWR from "swr"
 import { useRouter, useSearchParams } from "next/navigation"
 import { AppHeader } from "@/components/app-header"
 import { LeadDetailPanel } from "@/components/lead-detail-panel"
 import { ImportLeadModal } from "@/components/import-lead-modal"
-import { Search, Mail, Plus, ChevronRight, ChevronDown, ArrowUpDown, LayoutGrid, List, Clock, Star, X, Check, CheckCircle2, AlertCircle, Sparkles } from "lucide-react"
+import { Search, Mail, Plus, ChevronRight, ChevronDown, ArrowUpDown, LayoutGrid, List, Clock, Star, X, Check, CheckCircle2, AlertCircle, Sparkles, Zap } from "lucide-react"
 import type { Lead } from "@/lib/types"
 import { cn } from "@/lib/utils"
 import { ThemeBackground } from "@/lib/use-theme-gradient"
@@ -29,7 +29,7 @@ function LeadsContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { user, loading: userLoading } = useUser()
-  const { data: leads = [], mutate } = useSWR<Lead[]>("/api/leads", fetcher)
+  const { data: leads = [], mutate } = useSWR<Lead[]>("/api/leads", fetcher, { refreshInterval: 30000 })
   const [activeTab, setActiveTab] = useState<TabType>("all")
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null)
   const [showImportModal, setShowImportModal] = useState(false)
@@ -39,6 +39,9 @@ function LeadsContent() {
   const [viewMode, setViewMode] = useState<"grid" | "list">("list")
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedActionLeads, setSelectedActionLeads] = useState<Set<string>>(new Set())
+  const [lastFetched, setLastFetched] = useState<Date | null>(null)
+  const [toast, setToast] = useState<{ message: string; id: string } | null>(null)
+  const prevLeadIdsRef = useRef<Set<string>>(new Set())
 
   useEffect(() => {
     const leadId = searchParams.get("id")
@@ -69,6 +72,28 @@ function LeadsContent() {
       router.push("/login")
     }
   }, [user, userLoading, router])
+
+  // Track last fetched time and detect new leads for toast
+  useEffect(() => {
+    if (leads.length === 0) return
+    setLastFetched(new Date())
+
+    const currentIds = new Set(leads.map(l => l.id))
+    if (prevLeadIdsRef.current.size > 0) {
+      const newLeads = leads.filter(l => !prevLeadIdsRef.current.has(l.id))
+      if (newLeads.length > 0) {
+        const lead = newLeads[0]
+        setToast({
+          message: newLeads.length === 1
+            ? `New lead: ${lead.name}`
+            : `${newLeads.length} new leads received`,
+          id: lead.id,
+        })
+        setTimeout(() => setToast(null), 5000)
+      }
+    }
+    prevLeadIdsRef.current = currentIds
+  }, [leads])
 
   const getLeadRating = (lead: Lead): number => lead.session?.rating ?? lead.rating ?? 0
   const getLeadStatus = (lead: Lead): string => lead.session?.status || lead.status || "pending"
@@ -302,7 +327,7 @@ function LeadsContent() {
               {[...Array(5)].map((_, i) => (
                 <Star key={i} className={cn(
                   "h-3 w-3",
-                  i < rating ? "text-yellow-500 fill-yellow-500" : "text-muted"
+                  i < rating ? "text-yellow-400 fill-yellow-400" : "text-border"
                 )} />
               ))}
             </div>
@@ -405,7 +430,7 @@ function LeadsContent() {
               {[...Array(5)].map((_, i) => (
                 <Star key={i} className={cn(
                   "h-3.5 w-3.5",
-                  i < rating ? "fill-foreground text-foreground" : "text-muted"
+                  i < rating ? "fill-yellow-400 text-yellow-400" : "text-muted"
                 )} />
               ))}
             </div>
@@ -415,23 +440,20 @@ function LeadsContent() {
           </div>
 
           {/* AI Reasoning Box - Animated gradient border */}
-          <div 
+          <div
             className="relative rounded-lg mb-3 min-h-[80px]"
-            style={{ 
-              padding: "2px",
+            style={{
+              padding: "1.5px",
               background: "linear-gradient(90deg, #8B5CF6, #A855F7, #3B82F6, #8B5CF6)",
               backgroundSize: "200% 100%",
               animation: "gradient-x 3s linear infinite"
             }}
           >
-            <div 
-              className="relative rounded-md p-2.5 h-full"
-              style={{ backgroundColor: "var(--background)" }}
-            >
+            <div className="rounded-md p-2.5 h-full" style={{ backgroundColor: "var(--card)" }}>
               {aiSummary ? (
                 <>
                   <div className="flex items-center gap-1.5 mb-1.5">
-                    <Sparkles className="w-3 h-3 text-violet-500" />
+                    <Sparkles className="w-3 h-3 text-violet-400" />
                     <span className="text-[10px] uppercase tracking-wide text-muted-foreground font-medium">AI Reasoning</span>
                   </div>
                   <p className="text-xs text-foreground leading-relaxed">{aiSummary}</p>
@@ -661,7 +683,7 @@ function LeadsContent() {
             {[...Array(5)].map((_, i) => (
               <Star key={i} className={cn(
                 "h-3 w-3",
-                i < rating ? "text-yellow-500 fill-yellow-500" : "text-muted"
+                i < rating ? "text-yellow-400 fill-yellow-400" : "text-border"
               )} />
             ))}
           </div>
@@ -680,6 +702,26 @@ function LeadsContent() {
     <ThemeBackground>
       <AppHeader onRefresh={mutate} isRefreshing={false} user={user ? { name: user.name, email: user.email } : undefined} leads={leads || []} />
 
+      {/* New Lead Toast */}
+      {toast && (
+        <div
+          className="fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3 rounded-lg border border-border bg-card shadow-xl cursor-pointer max-w-xs"
+          onClick={() => {
+            setToast(null)
+            router.push(`/leads?id=${toast.id}`)
+          }}
+        >
+          <Zap className="h-4 w-4 text-[var(--status-approved)] shrink-0" />
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium truncate">{toast.message}</p>
+            <p className="text-xs text-muted-foreground">Click to view</p>
+          </div>
+          <button onClick={(e) => { e.stopPropagation(); setToast(null) }} className="text-muted-foreground hover:text-foreground">
+            <X className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      )}
+
       <div className="p-6 space-y-5 max-w-6xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -687,9 +729,9 @@ function LeadsContent() {
             <h1 className="text-xl font-semibold tracking-tight">Leads</h1>
             <p className="text-sm text-muted-foreground mt-0.5">
               {leads.length} total leads
-              {leads.length > 0 && (
+              {lastFetched && (
                 <span className="ml-2">
-                  · Last updated {new Date(Math.max(...leads.map(l => new Date(l.updatedAt || l.createdAt).getTime()))).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  · Last updated {lastFetched.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </span>
               )}
             </p>

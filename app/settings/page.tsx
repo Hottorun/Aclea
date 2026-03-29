@@ -407,15 +407,15 @@ export default function Settings() {
                   onClick={toggleDarkMode}
                   disabled={isSaving || !mounted}
                   className={cn(
-                    "relative w-10 h-5 rounded-full transition-colors",
-                    mounted && theme === "dark" ? "bg-foreground" : "bg-muted",
+                    "relative w-11 h-6 rounded-full transition-colors duration-200",
+                    mounted && theme === "dark" ? "bg-foreground" : "bg-border",
                     isSaving && "opacity-50"
                   )}
                 >
                   <span
                     className={cn(
-                      "absolute top-0.5 w-4 h-4 rounded-full bg-background transition-transform",
-                      mounted && theme === "dark" ? "translate-x-5" : "translate-x-0.5"
+                      "absolute top-1 w-4 h-4 rounded-full shadow-sm transition-transform duration-200",
+                      mounted && theme === "dark" ? "bg-card translate-x-6" : "bg-card translate-x-1"
                     )}
                   />
                 </button>

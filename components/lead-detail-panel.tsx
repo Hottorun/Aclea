@@ -74,7 +74,7 @@ export function LeadDetailPanel({ lead, onClose, onSendMessage }: LeadDetailPane
   const sourceLabel = source === "whatsapp" ? "WhatsApp" : "Email"
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/20 backdrop-blur-sm" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md" onClick={onClose}>
       <div
         className="relative w-full max-w-xl max-h-[90vh] overflow-hidden rounded-lg border border-border bg-card shadow-xl"
         onClick={e => e.stopPropagation()}
@@ -128,7 +128,7 @@ export function LeadDetailPanel({ lead, onClose, onSendMessage }: LeadDetailPane
                   key={i}
                   className={cn(
                     "h-4 w-4",
-                    i < rating ? "text-foreground fill-foreground" : "text-muted"
+                    i < rating ? "text-yellow-400 fill-yellow-400" : "text-muted"
                   )}
                 />
               ))}

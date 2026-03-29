@@ -143,7 +143,7 @@ export default function TeamSettings() {
     return (
       <ThemeBackground className="p-6 space-y-6">
         <div className="min-h-screen flex items-center justify-center">
-          <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
+          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
         </div>
       </ThemeBackground>
     )
@@ -158,7 +158,7 @@ export default function TeamSettings() {
       <div className="flex items-center gap-4">
         <button
           onClick={() => router.push("/settings")}
-          className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+          className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground rounded-lg transition-colors"
         >
           <ArrowLeft className="h-4 w-4" />
           Back to Settings
@@ -166,19 +166,19 @@ export default function TeamSettings() {
       </div>
 
       <div>
-        <h1 className="text-2xl font-semibold text-slate-800">Team Management</h1>
-        <p className="text-slate-500 mt-1">Manage your team members and their access levels</p>
+        <h1 className="text-2xl font-semibold text-foreground">Team Management</h1>
+        <p className="text-muted-foreground mt-1">Manage your team members and their access levels</p>
       </div>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm">
+        <div className="bg-destructive/10 border border-destructive/30 text-destructive px-4 py-3 rounded-lg text-sm">
           {error}
         </div>
       )}
 
-      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-        <div className="px-6 py-4 border-b border-slate-100 bg-slate-50">
-          <h3 className="font-semibold text-slate-800 flex items-center gap-2">
+      <div className="rounded-lg border border-border bg-card overflow-hidden">
+        <div className="px-6 py-4 border-b border-border bg-muted">
+          <h3 className="font-semibold text-foreground flex items-center gap-2">
             <Users className="h-5 w-5" />
             Add New Member
           </h3>
@@ -225,7 +225,7 @@ export default function TeamSettings() {
                 id="role"
                 value={newMember.role}
                 onChange={(e) => setNewMember({ ...newMember, role: e.target.value as "admin" | "member" })}
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm cursor-pointer"
+                className="flex h-10 w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground cursor-pointer"
               >
                 <option value="member">Member</option>
                 <option value="admin">Admin</option>
@@ -236,7 +236,7 @@ export default function TeamSettings() {
             <Button
               onClick={handleAddMember}
               disabled={isAddingMember || !newMember.email || !newMember.name || !newMember.password}
-              className="cursor-pointer"
+              className="cursor-pointer bg-foreground text-background hover:bg-foreground/90"
             >
               {isAddingMember ? (
                 <>
@@ -254,17 +254,17 @@ export default function TeamSettings() {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-        <div className="px-6 py-4 border-b border-slate-100 bg-slate-50">
-          <h3 className="font-semibold text-slate-800">Current Team Members</h3>
+      <div className="rounded-lg border border-border bg-card overflow-hidden">
+        <div className="px-6 py-4 border-b border-border bg-muted">
+          <h3 className="font-semibold text-foreground">Current Team Members</h3>
         </div>
-        <div className="divide-y divide-slate-100">
+        <div className="divide-y divide-border">
           {isLoadingMembers ? (
             <div className="flex items-center justify-center py-12">
-              <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
             </div>
           ) : teamMembers.length === 0 ? (
-            <div className="py-12 text-center text-slate-500">
+            <div className="py-12 text-center text-muted-foreground">
               No team members found
             </div>
           ) : (
@@ -274,25 +274,25 @@ export default function TeamSettings() {
                 className="flex items-center justify-between px-6 py-4"
               >
                 <div className="flex items-center gap-4">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted">
                     {member.role === "owner" ? (
                       <Crown className="h-5 w-5 text-yellow-500" />
                     ) : member.role === "admin" ? (
                       <Shield className="h-5 w-5 text-blue-500" />
                     ) : (
-                      <span className="text-sm font-medium text-slate-600">
+                      <span className="text-sm font-medium text-muted-foreground">
                         {member.name.charAt(0).toUpperCase()}
                       </span>
                     )}
                   </div>
                   <div>
-                    <p className="font-medium text-slate-800">{member.name}</p>
-                    <p className="text-sm text-slate-500">{member.email}</p>
+                    <p className="font-medium text-foreground">{member.name}</p>
+                    <p className="text-sm text-muted-foreground">{member.email}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
                   {member.role === "owner" ? (
-                    <span className="text-sm text-slate-500 flex items-center gap-1">
+                    <span className="text-sm text-muted-foreground flex items-center gap-1">
                       <Crown className="h-3 w-3 text-yellow-500" />
                       Owner
                     </span>
@@ -303,7 +303,7 @@ export default function TeamSettings() {
                           <select
                             value={member.role}
                             onChange={(e) => handleUpdateRole(member.id, e.target.value as "admin" | "member")}
-                            className="h-9 rounded-md border border-input bg-background px-3 py-1 text-sm cursor-pointer"
+                            className="h-9 rounded-md border border-border bg-background px-3 py-1 text-sm text-foreground cursor-pointer"
                           >
                             <option value="member">Member</option>
                             <option value="admin">Admin</option>
@@ -323,7 +323,7 @@ export default function TeamSettings() {
                         variant="ghost"
                         size="icon"
                         onClick={() => handleRemoveMember(member.id)}
-                        className="h-9 w-9 cursor-pointer text-red-500 hover:text-red-600 hover:bg-red-50"
+                        className="h-9 w-9 cursor-pointer text-destructive hover:text-destructive/80 hover:bg-destructive/10"
                       >
                         <UserMinus className="h-4 w-4" />
                       </Button>
