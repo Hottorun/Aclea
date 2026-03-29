@@ -269,6 +269,15 @@ export function Dashboard() {
           onClose={handleCloseLead}
           onUpdate={handleUpdateLead}
           onSendMessage={handleSendMessage}
+          onDelete={async (leadId) => {
+            const response = await fetch(`/api/leads/${leadId}`, {
+              method: "DELETE",
+            })
+            if (response.ok) {
+              setSelectedLead(null)
+              mutate()
+            }
+          }}
         />
       )}
     </ThemeBackground>

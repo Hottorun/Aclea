@@ -14,10 +14,13 @@ import {
   Loader2,
   Star,
   Clock,
+  Pencil,
+  Trash2,
+  ChevronDown,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
-import type { Lead, LeadSource } from "@/lib/types"
+import type { Lead, LeadSource, LeadStatus, CollectedData } from "@/lib/types"
 import { cn } from "@/lib/utils"
 
 interface LeadDetailPanelProps {
@@ -25,6 +28,7 @@ interface LeadDetailPanelProps {
   onClose: () => void
   onUpdate: (updates: Partial<Lead>) => void
   onSendMessage: (action: "approve" | "decline", message: string) => Promise<void>
+  onDelete?: (leadId: string) => Promise<void>
 }
 
 function formatDate(dateString: string): string {
@@ -37,7 +41,7 @@ function formatDate(dateString: string): string {
   })
 }
 
-function getCollectedDataFirst(collectedData: Record<string, unknown> | Record<string, unknown>[] | null | undefined): Record<string, unknown> {
+function getCollectedDataFirst(collectedData: CollectedData | CollectedData[] | null | undefined): CollectedData {
   if (!collectedData) return {}
   if (Array.isArray(collectedData)) return collectedData[0] || {}
   return collectedData
@@ -58,15 +62,33 @@ function getLeadStatus(lead: Lead): string {
   return lead.session?.status || lead.status || "pending"
 }
 
-export function LeadDetailPanel({ lead, onClose, onSendMessage }: LeadDetailPanelProps) {
+const STATUS_OPTIONS: { value: LeadStatus; label: string; className: string }[] = [
+  { value: "pending", label: "Pending", className: "bg-[var(--status-pending-bg)] text-[var(--status-pending)]" },
+  { value: "approved", label: "Approved", className: "bg-[var(--status-approved-bg)] text-[var(--status-approved)]" },
+  { value: "declined", label: "Declined", className: "bg-[var(--status-declined-bg)] text-[var(--status-declined)]" },
+  { value: "manual", label: "Manual", className: "bg-[var(--status-manual-bg)] text-[var(--status-manual)]" },
+]
+
+export function LeadDetailPanel({ lead, onClose, onUpdate, onSendMessage, onDelete }: LeadDetailPanelProps) {
   const [approveMessage, setApproveMessage] = useState("")
   const [declineMessage, setDeclineMessage] = useState("")
   const [isSending, setIsSending] = useState<"approve" | "decline" | null>(null)
+  const [isEditing, setIsEditing] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [showStatusMenu, setShowStatusMenu] = useState(false)
+  const [editForm, setEditForm] = useState({
+    name: lead.name,
+    workType: (getCollectedDataFirst(lead.session?.collectedData).workType as string) || lead.workType || "",
+    location: (getCollectedDataFirst(lead.session?.collectedData).location as string) || lead.location || "",
+    conversationSummary: lead.conversationSummary || (getCollectedDataFirst(lead.session?.collectedData).conversationSummary as string) || "",
+    budget: (getCollectedDataFirst(lead.session?.collectedData).budget as string) || "",
+    timeline: (getCollectedDataFirst(lead.session?.collectedData).timeline as string) || "",
+  })
 
   const status = lead.session?.status || lead.status
   const rating = lead.session?.rating ?? lead.rating ?? 0
   const source = getLeadSource(lead)
-  const collectedData = lead.session?.collectedData || {}
+  const collectedData = getCollectedDataFirst(lead.session?.collectedData)
 
   const handleSend = async (action: "approve" | "decline") => {
     setIsSending(action)
@@ -78,8 +100,53 @@ export function LeadDetailPanel({ lead, onClose, onSendMessage }: LeadDetailPane
     }
   }
 
+  const handleStatusChange = async (newStatus: LeadStatus) => {
+    setShowStatusMenu(false)
+    await onUpdate({ status: newStatus } as Partial<Lead>)
+  }
+
+  const handleDelete = async () => {
+    if (!onDelete || !confirm("Are you sure you want to delete this lead? This action cannot be undone.")) return
+    setIsDeleting(true)
+    try {
+      await onDelete(lead.id)
+      onClose()
+    } finally {
+      setIsDeleting(false)
+    }
+  }
+
+  const handleSaveEdit = async () => {
+    const updatedCollectedData = {
+      ...collectedData,
+      workType: editForm.workType,
+      location: editForm.location,
+      conversationSummary: editForm.conversationSummary,
+      budget: editForm.budget,
+      timeline: editForm.timeline,
+    }
+    
+    await onUpdate({
+      name: editForm.name,
+      workType: editForm.workType,
+      location: editForm.location,
+      conversationSummary: editForm.conversationSummary,
+    } as Partial<Lead>)
+    
+    if (lead.session?.id) {
+      await fetch(`/api/leads/${lead.id}/session`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ collectedData: updatedCollectedData }),
+      })
+    }
+    
+    setIsEditing(false)
+  }
+
   const isActionable = status === "pending" || status === "manual"
   const sourceLabel = source === "whatsapp" ? "WhatsApp" : "Email"
+  const currentStatusOption = STATUS_OPTIONS.find(s => s.value === status)
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md" onClick={onClose}>
@@ -88,7 +155,17 @@ export function LeadDetailPanel({ lead, onClose, onSendMessage }: LeadDetailPane
         onClick={e => e.stopPropagation()}
       >
         <div className="flex items-center justify-between border-b border-border px-4 py-3">
-          <h2 className="text-sm font-medium">Lead Details</h2>
+          <div className="flex items-center gap-2">
+            <h2 className="text-sm font-medium">Lead Details</h2>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setIsEditing(!isEditing)}
+              className="h-7 w-7 text-muted-foreground hover:text-foreground"
+            >
+              <Pencil className="h-3.5 w-3.5" />
+            </Button>
+          </div>
           <Button
             variant="ghost"
             size="icon"
@@ -111,15 +188,34 @@ export function LeadDetailPanel({ lead, onClose, onSendMessage }: LeadDetailPane
                 <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
                   {sourceLabel}
                 </span>
-                <span className={cn(
-                  "text-xs px-2 py-0.5 rounded-full capitalize font-medium",
-                  status === "approved" && "bg-[var(--status-approved-bg)] text-[var(--status-approved)]",
-                  status === "pending" && "bg-[var(--status-pending-bg)] text-[var(--status-pending)]",
-                  status === "manual" && "bg-[var(--status-manual-bg)] text-[var(--status-manual)]",
-                  status === "declined" && "bg-[var(--status-declined-bg)] text-[var(--status-declined)]",
-                )}>
-                  {status}
-                </span>
+                <div className="relative">
+                  <button
+                    onClick={() => setShowStatusMenu(!showStatusMenu)}
+                    className={cn(
+                      "text-xs px-2 py-0.5 rounded-full capitalize font-medium cursor-pointer hover:opacity-80 transition-opacity flex items-center gap-1",
+                      currentStatusOption?.className
+                    )}
+                  >
+                    {status}
+                    <ChevronDown className="h-3 w-3" />
+                  </button>
+                  {showStatusMenu && (
+                    <div className="absolute top-full left-0 mt-1 bg-card rounded-md border border-border shadow-lg z-10 py-1 min-w-[100px]">
+                      {STATUS_OPTIONS.map((option) => (
+                        <button
+                          key={option.value}
+                          onClick={() => handleStatusChange(option.value)}
+                          className={cn(
+                            "w-full text-left px-3 py-1.5 text-xs capitalize hover:bg-muted transition-colors",
+                            status === option.value && "font-medium"
+                          )}
+                        >
+                          {option.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
               <div className="flex items-center gap-1.5 text-sm text-muted-foreground mt-1">
                 <Briefcase className="h-3.5 w-3.5" />
@@ -127,6 +223,94 @@ export function LeadDetailPanel({ lead, onClose, onSendMessage }: LeadDetailPane
               </div>
             </div>
           </div>
+
+          {/* Edit Form */}
+          {isEditing && (
+            <div className="rounded-md border border-border p-4 space-y-3 bg-muted/30">
+              <h4 className="text-sm font-medium flex items-center gap-2">
+                <Pencil className="h-4 w-4" />
+                Edit Lead
+              </h4>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs text-muted-foreground mb-1 block">Name</label>
+                  <input
+                    type="text"
+                    value={editForm.name}
+                    onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                    className="w-full px-3 py-2 text-sm rounded-md border border-border bg-background"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-muted-foreground mb-1 block">Work Type</label>
+                  <input
+                    type="text"
+                    value={editForm.workType}
+                    onChange={(e) => setEditForm({ ...editForm, workType: e.target.value })}
+                    className="w-full px-3 py-2 text-sm rounded-md border border-border bg-background"
+                    placeholder="e.g. Home Renovation"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-muted-foreground mb-1 block">Location</label>
+                  <input
+                    type="text"
+                    value={editForm.location}
+                    onChange={(e) => setEditForm({ ...editForm, location: e.target.value })}
+                    className="w-full px-3 py-2 text-sm rounded-md border border-border bg-background"
+                    placeholder="e.g. New York, NY"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-muted-foreground mb-1 block">Budget</label>
+                  <input
+                    type="text"
+                    value={editForm.budget}
+                    onChange={(e) => setEditForm({ ...editForm, budget: e.target.value })}
+                    className="w-full px-3 py-2 text-sm rounded-md border border-border bg-background"
+                    placeholder="e.g. $10,000 - $20,000"
+                  />
+                </div>
+                <div className="col-span-2">
+                  <label className="text-xs text-muted-foreground mb-1 block">Timeline</label>
+                  <input
+                    type="text"
+                    value={editForm.timeline}
+                    onChange={(e) => setEditForm({ ...editForm, timeline: e.target.value })}
+                    className="w-full px-3 py-2 text-sm rounded-md border border-border bg-background"
+                    placeholder="e.g. Within 2 months"
+                  />
+                </div>
+                <div className="col-span-2">
+                  <label className="text-xs text-muted-foreground mb-1 block">Conversation Summary</label>
+                  <textarea
+                    value={editForm.conversationSummary}
+                    onChange={(e) => setEditForm({ ...editForm, conversationSummary: e.target.value })}
+                    rows={2}
+                    className="w-full px-3 py-2 text-sm rounded-md border border-border bg-background resize-none"
+                    placeholder="Brief summary of the lead's inquiry..."
+                  />
+                </div>
+              </div>
+              <div className="flex gap-2 pt-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsEditing(false)}
+                  className="flex-1"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={handleSaveEdit}
+                  className="flex-1 bg-foreground text-background hover:bg-foreground/90"
+                >
+                  Save Changes
+                </Button>
+              </div>
+            </div>
+          )}
 
           {/* Rating */}
           <div className="flex items-center gap-2">
@@ -159,7 +343,7 @@ export function LeadDetailPanel({ lead, onClose, onSendMessage }: LeadDetailPane
             </div>
             <div className="flex flex-col items-center gap-1 rounded-md border border-border bg-muted/50 p-3 text-center">
               <span className="text-base font-semibold">{lead.session?.needsMoreInfo ? "Info needed" : "Ready"}</span>
-              <span className="text-xs text-muted-foreground">Status</span>
+              <span className="text-xs text-muted-foreground">Info Status</span>
             </div>
           </div>
 
@@ -181,13 +365,16 @@ export function LeadDetailPanel({ lead, onClose, onSendMessage }: LeadDetailPane
               </div>
             )}
             {lead.email && (
-              <div className="flex items-center gap-3 rounded-md border border-border p-3">
+              <a
+                href={`mailto:${lead.email}`}
+                className="flex items-center gap-3 rounded-md border border-border p-3 hover:bg-muted/50 transition-colors group"
+              >
                 <Mail className="h-4 w-4 text-muted-foreground" />
                 <div>
                   <p className="text-xs text-muted-foreground">Email</p>
-                  <p className="text-sm font-medium">{lead.email}</p>
+                  <p className="text-sm font-medium text-foreground group-hover:underline">{lead.email}</p>
                 </div>
-              </div>
+              </a>
             )}
             <div className="flex items-center gap-3 rounded-md border border-border p-3">
               <MapPin className="h-4 w-4 text-muted-foreground" />
@@ -268,6 +455,23 @@ export function LeadDetailPanel({ lead, onClose, onSendMessage }: LeadDetailPane
                 )}
               </div>
             </div>
+          )}
+
+          {/* Delete Button (for approved or declined leads) */}
+          {(status === "approved" || status === "declined") && onDelete && (
+            <Button
+              variant="outline"
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="w-full border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
+            >
+              {isDeleting ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Trash2 className="mr-2 h-4 w-4" />
+              )}
+              Remove Lead
+            </Button>
           )}
 
           {/* Timestamps */}

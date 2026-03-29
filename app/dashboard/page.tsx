@@ -195,6 +195,15 @@ export default function DashboardPage() {
             onClose={() => setSelectedLead(null)}
             onUpdate={handleUpdateLead}
             onSendMessage={handleSendMessage}
+            onDelete={async (leadId) => {
+              const response = await fetch(`/api/leads/${leadId}`, {
+                method: "DELETE",
+              })
+              if (response.ok) {
+                setSelectedLead(null)
+                setLeads(leads.filter(l => l.id !== leadId))
+              }
+            }}
           />
         )}
         <div className="p-6 space-y-6 max-w-5xl mx-auto">

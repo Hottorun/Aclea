@@ -242,11 +242,12 @@ function LeadsContent() {
   const reviewedToday = useMemo(() => {
     const today = new Date()
     today.setHours(0, 0, 0, 0)
-    return actionLeads.filter(l => {
+    return leads.filter(l => {
       const updated = new Date(l.updatedAt || l.createdAt)
-      return updated >= today && (getLeadStatus(l) === "approved" || getLeadStatus(l) === "pending")
+      const status = getLeadStatus(l)
+      return updated >= today && (status === "approved" || status === "declined")
     }).length
-  }, [actionLeads])
+  }, [leads])
 
   const toReviewCount = manualLeads.length + declinedLeads.length
   const reviewedCount = reviewedToday
@@ -530,9 +531,6 @@ function LeadsContent() {
           <h1 className="text-xl font-semibold" style={{ fontWeight: 600, letterSpacing: "-0.5px" }}>Needs Action</h1>
           <p className="text-sm text-muted-foreground mt-1">Review and decide on these leads</p>
         </div>
-        <span className="text-xs px-3 py-1.5 rounded-md border border-border bg-muted/50 text-muted-foreground">
-          A = Approve · D = Decline
-        </span>
       </div>
 
       {/* Progress Card */}
@@ -932,6 +930,15 @@ function LeadsContent() {
             if (response.ok) {
               const result = await response.json()
               setSelectedLead(result.lead)
+              mutate()
+            }
+          }}
+          onDelete={async (leadId) => {
+            const response = await fetch(`/api/leads/${leadId}`, {
+              method: "DELETE",
+            })
+            if (response.ok) {
+              setSelectedLead(null)
               mutate()
             }
           }}

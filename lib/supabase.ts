@@ -287,6 +287,35 @@ export async function updateLead(id: string, updates: Partial<Lead>): Promise<Le
   if (updates.autoApproved !== undefined) dbUpdates.auto_approved = updates.autoApproved
   if (updates.lastContactedAt !== undefined) dbUpdates.last_contacted_at = updates.lastContactedAt
 
+  const needsSessionUpdate = updates.status !== undefined
+
+  if (needsSessionUpdate) {
+    const { data: sessionData } = await client
+      .from("leads_sessions")
+      .select("id")
+      .eq("leads_id", id)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .single()
+    
+    const now = new Date().toISOString()
+    
+    if (sessionData?.id) {
+      await client
+        .from("leads_sessions")
+        .update({ 
+          status: updates.status,
+          updated_at: now
+        })
+        .eq("id", sessionData.id)
+    }
+    
+    await client
+      .from("leads")
+      .update({ updated_at: now })
+      .eq("id", id)
+  }
+
   if (Object.keys(dbUpdates).length === 0) {
     return getLeadById(id)
   }
@@ -303,7 +332,7 @@ export async function updateLead(id: string, updates: Partial<Lead>): Promise<Le
     return null
   }
 
-  return mapDbLeadToLead(data)
+  return getLeadById(id)
 }
 
 export async function updateLeadSession(
@@ -313,7 +342,7 @@ export async function updateLeadSession(
     currentStep: string
     collectedData: CollectedData
     needsMoreInfo: boolean
-    rating: boolean
+    rating: number | boolean
     ratingReason: string
     forwardedAt: string
   }>
