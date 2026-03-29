@@ -44,7 +44,7 @@ export default function ImprintPage() {
               <h2 className="text-xl font-semibold mb-4 text-white">Kontakt</h2>
               <p className="mb-2 flex items-center gap-2">
                 <Mail className="size-4 text-emerald-400" />
-                E-Mail: kontakt@aclea.de
+                E-Mail: contact@aclea.de
               </p>
               <p className="mb-2 flex items-center gap-2">
                 <Phone className="size-4 text-emerald-400" />

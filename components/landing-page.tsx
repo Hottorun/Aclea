@@ -8,6 +8,14 @@ import { cn } from '@/lib/utils'
 import { useLanguage } from './language-provider'
 import { HeroGeometric } from '@/components/ui/shape-landing-hero'
 
+function ForceLightMode() {
+  useEffect(() => {
+    document.documentElement.classList.remove('dark')
+    document.documentElement.setAttribute('data-mode', 'light')
+  }, [])
+  return null
+}
+
 const translations = {
   de: {
     badge: "KI-gestützte Lead-Qualifizierung",
@@ -238,6 +246,7 @@ export function LandingPage() {
 
   return (
     <>
+      <ForceLightMode />
       <HeroHeader t={t} language={language} toggleLanguage={toggleLanguage} />
       <ScrollEffects />
       <HeroGeometric 
@@ -486,7 +495,7 @@ function Footer({ t }: FooterProps) {
             <div className="mt-6 flex flex-col gap-3 text-sm text-white/60">
               <div className="flex items-center gap-2">
                 <Mail className="size-4" />
-                <span>kontakt@aclea.de</span>
+                <span>contact@aclea.de</span>
               </div>
               <div className="flex items-center gap-2">
                 <Phone className="size-4" />

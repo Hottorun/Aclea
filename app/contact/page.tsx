@@ -1,10 +1,18 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Mail, Phone, MapPin, Send, Check } from 'lucide-react'
+import { ArrowLeft, Mail, Phone, MapPin, Send, Check, Zap } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+
+function ForceDarkMode() {
+  useEffect(() => {
+    document.documentElement.classList.add('dark')
+    document.documentElement.setAttribute('data-mode', 'dark')
+  }, [])
+  return null
+}
 
 export default function ContactPage() {
   const router = useRouter()
@@ -21,7 +29,6 @@ export default function ContactPage() {
     e.preventDefault()
     setIsSubmitting(true)
     
-    // Simulate form submission
     await new Promise(resolve => setTimeout(resolve, 1500))
     
     setIsSubmitting(false)
@@ -37,16 +44,16 @@ export default function ContactPage() {
 
   if (isSubmitted) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white flex items-center justify-center p-6">
+      <div className="min-h-screen bg-[#030303] flex items-center justify-center p-6">
         <div className="max-w-md w-full text-center">
-          <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <Check className="w-8 h-8 text-emerald-600" />
+          <div className="w-16 h-16 bg-emerald-600/20 rounded-full flex items-center justify-center mx-auto mb-6">
+            <Check className="w-8 h-8 text-emerald-400" />
           </div>
-          <h1 className="text-2xl font-bold text-slate-800 mb-4">Message Sent!</h1>
-          <p className="text-slate-600 mb-6">Thank you for reaching out. We'll get back to you within 24 hours.</p>
+          <h1 className="text-2xl font-bold text-white mb-4">Message Sent!</h1>
+          <p className="text-white/60 mb-6">Thank you for reaching out. We'll get back to you within 24 hours.</p>
           <Button 
             onClick={() => router.push('/')}
-            className="bg-emerald-600 hover:bg-emerald-700"
+            className="bg-emerald-600 hover:bg-emerald-700 text-white"
           >
             Back to Home
           </Button>
@@ -56,12 +63,14 @@ export default function ContactPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
+    <div className="min-h-screen bg-[#030303]">
+      <ForceDarkMode />
+      
       {/* Header */}
       <header className="p-6">
         <Link 
           href="/"
-          className="inline-flex items-center gap-2 text-slate-600 hover:text-slate-800 transition-colors"
+          className="inline-flex items-center gap-2 text-white/60 hover:text-white transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
           Back to Home
@@ -73,49 +82,49 @@ export default function ContactPage() {
         <div className="grid lg:grid-cols-2 gap-12">
           {/* Left - Info */}
           <div>
-            <h1 className="text-4xl font-bold text-slate-800 mb-4">Get in Touch</h1>
-            <p className="text-lg text-slate-600 mb-8">
+            <h1 className="text-4xl font-bold text-white mb-4">Get in Touch</h1>
+            <p className="text-lg text-white/60 mb-8">
               Interested in Aclea? We'd love to hear from you. Fill out the form and we'll get back to you as soon as possible.
             </p>
 
             <div className="space-y-6">
               <div className="flex items-start gap-4">
-                <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center shrink-0">
-                  <Mail className="w-5 h-5 text-emerald-600" />
+                <div className="w-12 h-12 bg-emerald-600/20 rounded-xl flex items-center justify-center shrink-0">
+                  <Mail className="w-5 h-5 text-emerald-400" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-slate-800">Email</h3>
-                  <p className="text-slate-600">kontakt@aclea.de</p>
+                  <h3 className="font-semibold text-white">Email</h3>
+                  <a href="mailto:contact@aclea.de" className="text-white/60 hover:text-emerald-400 transition-colors">contact@aclea.de</a>
                 </div>
               </div>
 
               <div className="flex items-start gap-4">
-                <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center shrink-0">
-                  <Phone className="w-5 h-5 text-emerald-600" />
+                <div className="w-12 h-12 bg-emerald-600/20 rounded-xl flex items-center justify-center shrink-0">
+                  <Phone className="w-5 h-5 text-emerald-400" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-slate-800">Phone</h3>
-                  <p className="text-slate-600">+49 (0) 30 123 456 78</p>
+                  <h3 className="font-semibold text-white">Phone</h3>
+                  <p className="text-white/60">+49 (0) 30 123 456 78</p>
                 </div>
               </div>
 
               <div className="flex items-start gap-4">
-                <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center shrink-0">
-                  <MapPin className="w-5 h-5 text-emerald-600" />
+                <div className="w-12 h-12 bg-emerald-600/20 rounded-xl flex items-center justify-center shrink-0">
+                  <MapPin className="w-5 h-5 text-emerald-400" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-slate-800">Address</h3>
-                  <p className="text-slate-600">Berlin, Germany</p>
+                  <h3 className="font-semibold text-white">Address</h3>
+                  <p className="text-white/60">Berlin, Germany</p>
                 </div>
               </div>
             </div>
           </div>
 
           {/* Right - Form */}
-          <div className="bg-white rounded-2xl border border-slate-200 p-8 shadow-sm">
+          <div className="bg-white/5 border border-white/10 rounded-2xl p-8">
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
-                <label htmlFor="name" className="block text-sm font-medium text-slate-700 mb-2">
+                <label htmlFor="name" className="block text-sm font-medium text-white mb-2">
                   Name
                 </label>
                 <input
@@ -125,13 +134,13 @@ export default function ContactPage() {
                   required
                   value={formData.name}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition-all"
+                  className="w-full px-4 py-3 rounded-xl border border-white/10 bg-white/5 text-white placeholder:text-white/40 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition-all"
                   placeholder="Your name"
                 />
               </div>
 
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-2">
+                <label htmlFor="email" className="block text-sm font-medium text-white mb-2">
                   Email
                 </label>
                 <input
@@ -141,13 +150,13 @@ export default function ContactPage() {
                   required
                   value={formData.email}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition-all"
+                  className="w-full px-4 py-3 rounded-xl border border-white/10 bg-white/5 text-white placeholder:text-white/40 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition-all"
                   placeholder="you@example.com"
                 />
               </div>
 
               <div>
-                <label htmlFor="company" className="block text-sm font-medium text-slate-700 mb-2">
+                <label htmlFor="company" className="block text-sm font-medium text-white mb-2">
                   Company (Optional)
                 </label>
                 <input
@@ -156,13 +165,13 @@ export default function ContactPage() {
                   name="company"
                   value={formData.company}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition-all"
+                  className="w-full px-4 py-3 rounded-xl border border-white/10 bg-white/5 text-white placeholder:text-white/40 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition-all"
                   placeholder="Your company"
                 />
               </div>
 
               <div>
-                <label htmlFor="message" className="block text-sm font-medium text-slate-700 mb-2">
+                <label htmlFor="message" className="block text-sm font-medium text-white mb-2">
                   Message
                 </label>
                 <textarea
@@ -172,7 +181,7 @@ export default function ContactPage() {
                   rows={5}
                   value={formData.message}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition-all resize-none"
+                  className="w-full px-4 py-3 rounded-xl border border-white/10 bg-white/5 text-white placeholder:text-white/40 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition-all resize-none"
                   placeholder="Tell us about your needs..."
                 />
               </div>

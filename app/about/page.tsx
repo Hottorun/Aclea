@@ -94,7 +94,7 @@ export default function AboutPage() {
             <div className="flex flex-col md:flex-row gap-8 justify-center">
               <div className="flex items-center gap-3 text-white/60">
                 <Mail className="size-5 text-emerald-400" />
-                <span>kontakt@aclea.de</span>
+                <span>contact@aclea.de</span>
               </div>
               <div className="flex items-center gap-3 text-white/60">
                 <Phone className="size-5 text-emerald-400" />

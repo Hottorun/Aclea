@@ -152,24 +152,6 @@ export default function LoginPage() {
               )}
             </Button>
           </form>
-
-          <div className="mt-6">
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-border" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-card px-2 text-muted-foreground">{t("or")}</span>
-              </div>
-            </div>
-
-            <p className="mt-4 text-center text-sm text-muted-foreground">
-              {t("noAccount")}{" "}
-              <Link href="/register" className="text-foreground hover:text-foreground/80 font-medium transition-colors">
-                {t("signUpNow")}
-              </Link>
-            </p>
-          </div>
         </div>
 
         <Link href="/" className="flex items-center justify-center gap-2 mt-6 text-sm text-muted-foreground hover:text-foreground transition-colors">

@@ -188,7 +188,7 @@ export default function TermsPage() {
               </p>
               <p className="mb-4">
                 Um das Widerrufsrecht auszuüben, müssen Sie uns (Aclea GmbH, Friedrichstraße 123, 
-                10117 Berlin, kontakt@aclea.de) mittels einer eindeutigen Erklärung (z.B. ein mit 
+                10117 Berlin, contact@aclea.de) mittels einer eindeutigen Erklärung (z.B. ein mit 
                 der Post versandter Brief oder E-Mail) über Ihren Entschluss, diesen Vertrag 
                 zu widerrufen, informieren.
               </p>
