@@ -189,12 +189,16 @@ function ForceLightMode() {
 
 // ─── Nav ─────────────────────────────────────────────────────────────────────
 
+function scrollToId(id: string) {
+  document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
+}
+
 function Nav() {
   const scrolled = useScrolled()
   const [open, setOpen] = useState(false)
 
   const links = [
-    { label: t.nav.features, href: '#features' },
+    { label: t.nav.features, scrollId: 'features' },
     { label: t.nav.solution, href: '/solution' },
     { label: t.nav.about, href: '/about' },
   ]
@@ -214,7 +218,7 @@ function Nav() {
             : 'bg-white/60 backdrop-blur-xl border border-white/70'
         )}
       >
-        <div className="flex items-center justify-between">
+        <div className="relative flex items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2.5 group">
             <div className="flex size-8 items-center justify-center rounded-xl bg-[#0B0B16] group-hover:bg-[#1a1a30] transition-colors">
@@ -224,15 +228,24 @@ function Nav() {
           </Link>
 
           {/* Desktop links */}
-          <ul className="hidden md:flex items-center gap-7">
+          <ul className="hidden md:flex items-center gap-7 absolute left-1/2 -translate-x-1/2">
             {links.map((l) => (
-              <li key={l.href}>
-                <Link
-                  href={l.href}
-                  className="text-sm font-medium text-[#6B728C] hover:text-[#0B0B16] transition-colors duration-150"
-                >
-                  {l.label}
-                </Link>
+              <li key={l.label}>
+                {'scrollId' in l ? (
+                  <button
+                    onClick={() => scrollToId(l.scrollId!)}
+                    className="text-sm font-medium text-[#6B728C] hover:text-[#0B0B16] transition-colors duration-150"
+                  >
+                    {l.label}
+                  </button>
+                ) : (
+                  <Link
+                    href={l.href!}
+                    className="text-sm font-medium text-[#6B728C] hover:text-[#0B0B16] transition-colors duration-150"
+                  >
+                    {l.label}
+                  </Link>
+                )}
               </li>
             ))}
           </ul>
@@ -276,14 +289,24 @@ function Nav() {
             >
               <div className="pt-4 pb-2 mt-3 border-t border-black/[0.06] space-y-1">
                 {links.map((l) => (
-                  <Link
-                    key={l.href}
-                    href={l.href}
-                    onClick={() => setOpen(false)}
-                    className="block text-sm font-medium text-[#6B728C] hover:text-[#0B0B16] py-2 px-2 rounded-lg hover:bg-black/[0.04] transition-all"
-                  >
-                    {l.label}
-                  </Link>
+                  'scrollId' in l ? (
+                    <button
+                      key={l.label}
+                      onClick={() => { scrollToId(l.scrollId!); setOpen(false) }}
+                      className="w-full text-left block text-sm font-medium text-[#6B728C] hover:text-[#0B0B16] py-2 px-2 rounded-lg hover:bg-black/[0.04] transition-all"
+                    >
+                      {l.label}
+                    </button>
+                  ) : (
+                    <Link
+                      key={l.label}
+                      href={l.href!}
+                      onClick={() => setOpen(false)}
+                      className="block text-sm font-medium text-[#6B728C] hover:text-[#0B0B16] py-2 px-2 rounded-lg hover:bg-black/[0.04] transition-all"
+                    >
+                      {l.label}
+                    </Link>
+                  )
                 ))}
                 <div className="pt-3 flex flex-col gap-2">
                   <Link href="/login" className="text-sm font-medium text-center text-[#6B728C] border border-black/10 py-2.5 rounded-xl hover:bg-black/[0.03] transition-all">
@@ -597,12 +620,12 @@ function Hero() {
             </Link>
           </motion.div>
           <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}>
-            <Link
-              href="#features"
-              className="inline-flex items-center gap-2 text-sm font-semibold text-[#0B0B16] bg-white/80 hover:bg-white border border-white/90 px-7 py-3.5 rounded-xl transition-all shadow-sm backdrop-blur-sm"
+            <button
+              onClick={() => scrollToId('how-it-works')}
+              className="inline-flex items-center gap-2 text-sm font-semibold text-[#0B0B16] bg-white/80 hover:bg-white border border-white/90 px-7 py-3.5 rounded-xl transition-all shadow-sm backdrop-blur-sm cursor-pointer"
             >
               {t.hero.cta2}
-            </Link>
+            </button>
           </motion.div>
         </motion.div>
 
@@ -695,7 +718,7 @@ function HowItWorks() {
   const inView = useInView(ref, { once: true, margin: '-80px' })
 
   return (
-    <section className="py-28 bg-[#D9DFED]" ref={ref}>
+    <section className="py-28 bg-[#D9DFED]" id="how-it-works" ref={ref}>
       <div className="mx-auto max-w-5xl px-6">
         <motion.div
           initial="hidden"
@@ -732,7 +755,7 @@ function HowItWorks() {
               <h3 className="text-[15px] font-semibold text-[#0B0B16] mb-2">{step.title}</h3>
               <p className="text-sm text-[#6B728C] leading-relaxed">{step.desc}</p>
               {i < t.steps.items.length - 1 && (
-                <div className="hidden md:block absolute top-10 -right-3 w-6 h-6 text-[#C0C8DA]">
+                <div className="hidden md:flex items-center justify-center absolute top-10 left-full w-6 h-6 text-[#C0C8DA] z-10">
                   <ArrowRight className="size-5" />
                 </div>
               )}

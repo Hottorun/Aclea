@@ -131,25 +131,6 @@ export default function SolutionPage() {
             </div>
           </div>
 
-          {/* How It Works */}
-          <div style={{ marginBottom: '5rem' }}>
-            <h2 style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '0.75rem', textAlign: 'center', letterSpacing: '-0.02em' }}>How It Works</h2>
-            <p style={{ color: '#737373', textAlign: 'center', marginBottom: '3rem', maxWidth: '36rem', margin: '0 auto 3rem' }}>Get started in minutes, not days.</p>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '2rem' }}>
-              {[
-                { step: '1', title: 'Connect Your Channels', desc: 'Integrate WhatsApp, Email, Web Forms, or use our API to capture leads automatically.' },
-                { step: '2', title: 'AI Qualifies Instantly', desc: 'Our AI analyzes each lead and scores them based on 50+ criteria in real-time.' },
-                { step: '3', title: 'Focus on Winners', desc: 'Get notified of high-quality leads and start closing deals faster than ever.' },
-              ].map(({ step, title, desc }) => (
-                <div key={step} style={{ textAlign: 'center' }}>
-                  <div style={{ width: '3.5rem', height: '3.5rem', borderRadius: '50%', backgroundColor: '#111111', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem', fontSize: '1.25rem', fontWeight: 700, color: '#ffffff' }}>{step}</div>
-                  <h3 style={{ fontWeight: 600, marginBottom: '0.5rem' }}>{title}</h3>
-                  <p style={{ fontSize: '0.875rem', color: '#737373' }}>{desc}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-
           {/* Stats */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1px', backgroundColor: '#e5e5e5', borderRadius: '1rem', overflow: 'hidden', border: '1px solid #e5e5e5', marginBottom: '5rem' }}>
             {[{ value: '50+', label: 'Qualification Criteria' }, { value: '85%', label: 'Time Saved' }, { value: '3x', label: 'More Conversions' }, { value: '24/7', label: 'AI Availability' }].map(({ value, label }) => (
