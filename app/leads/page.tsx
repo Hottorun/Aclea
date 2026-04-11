@@ -29,7 +29,8 @@ function LeadsContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { user, loading: userLoading } = useUser()
-  const { data: leads = [], mutate } = useSWR<Lead[]>("/api/leads", fetcher, { refreshInterval: 30000 })
+  const { data: leadsData, mutate } = useSWR<Lead[]>("/api/leads", fetcher, { refreshInterval: 30000 })
+  const leads = Array.isArray(leadsData) ? leadsData : []
   const [activeTab, setActiveTab] = useState<TabType>("all")
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null)
   const [showImportModal, setShowImportModal] = useState(false)
@@ -155,6 +156,29 @@ function LeadsContent() {
       setToast({ message: `${failed} lead${failed > 1 ? "s" : ""} failed to approve`, id: "" })
       setTimeout(() => setToast(null), 5000)
     }
+  }
+
+  const handleDeleteLead = async (leadId: string) => {
+    try {
+      await fetch(`/api/leads/${leadId}`, { method: "DELETE" })
+      if (selectedLead?.id === leadId) setSelectedLead(null)
+      mutate()
+    } catch (error) {
+      console.error("Failed to delete lead:", error)
+    }
+  }
+
+  const handleDeleteAllDeclined = async () => {
+    const ids = declinedLeads.map(l => l.id)
+    await Promise.allSettled(
+      ids.map(id => fetch(`/api/leads/${id}`, { method: "DELETE" }))
+    )
+    setSelectedActionLeads(prev => {
+      const next = new Set(prev)
+      ids.forEach(id => next.delete(id))
+      return next
+    })
+    mutate()
   }
 
   const handleBatchDecline = async () => {
@@ -303,7 +327,7 @@ function LeadsContent() {
       <div
         key={lead.id}
         onClick={() => setSelectedLead(lead)}
-        className="rounded-lg border border-border bg-card p-4 hover:border-foreground/30 transition-all cursor-pointer"
+        className="rounded-lg border border-border bg-card p-4 hover:border-foreground/30 hover:shadow-sm hover:-translate-y-0.5 transition-all cursor-pointer"
       >
         <div className="flex items-start gap-3">
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-medium">
@@ -389,7 +413,7 @@ function LeadsContent() {
         key={key}
         onClick={() => setSelectedLead(lead)}
         className={cn(
-          "bg-card border border-border rounded-xl overflow-hidden cursor-pointer hover:border-foreground/30 transition-all flex flex-col",
+          "bg-card border border-border rounded-xl overflow-hidden cursor-pointer hover:border-foreground/30 hover:shadow-sm hover:-translate-y-0.5 transition-all flex flex-col",
           isDeclined && "opacity-75",
           isSelected && "ring-2 ring-foreground/50"
         )}
@@ -481,10 +505,13 @@ function LeadsContent() {
           {status === "declined" ? (
             <>
               <button
-                disabled
-                className="flex-1 px-4 py-2.5 text-sm text-muted-foreground bg-muted/50 cursor-default"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  handleDeleteLead(lead.id)
+                }}
+                className="flex-1 px-4 py-2.5 text-sm text-[var(--status-declined)] hover:bg-[var(--status-declined-bg)] transition-colors border-r border-border"
               >
-                Already declined
+                Delete permanently
               </button>
               <button
                 onClick={(e) => {
@@ -627,9 +654,17 @@ function LeadsContent() {
       {/* AI Declined Section */}
       {declinedLeads.length > 0 && (
         <div>
-          <div className="flex items-center gap-2 mb-3">
-            <span className="text-xs uppercase tracking-wide text-muted-foreground font-medium">AI declined — override?</span>
-            <span className="px-2 py-0.5 text-xs bg-[var(--status-declined-bg)] text-[var(--status-declined)] rounded-full font-medium">{declinedLeads.length}</span>
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <span className="text-xs uppercase tracking-wide text-muted-foreground font-medium">AI declined — override?</span>
+              <span className="px-2 py-0.5 text-xs bg-[var(--status-declined-bg)] text-[var(--status-declined)] rounded-full font-medium">{declinedLeads.length}</span>
+            </div>
+            <button
+              onClick={handleDeleteAllDeclined}
+              className="text-xs text-[var(--status-declined)] hover:bg-[var(--status-declined-bg)] px-2.5 py-1 rounded-md transition-colors"
+            >
+              Delete all declined
+            </button>
           </div>
           <p className="text-xs text-muted-foreground mb-3">AI rejected these — approve only if you disagree</p>
           <div className="w-full h-[2px] bg-border opacity-60 mb-4" />
@@ -642,7 +677,7 @@ function LeadsContent() {
       {/* Empty State */}
       {actionLeads.length === 0 && (
         <div className="text-center py-12 border border-border rounded-xl bg-card">
-          <CheckCircle2 className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+          <CheckCircle2 className="h-8 w-8 mx-auto mb-2 text-[var(--status-approved)]" />
           <h3 className="text-base font-medium">All caught up</h3>
           <p className="text-sm text-muted-foreground mt-1">No leads require attention</p>
         </div>
@@ -660,7 +695,7 @@ function LeadsContent() {
       <tr
         key={lead.id}
         onClick={() => setSelectedLead(lead)}
-        className="border-b border-border hover:bg-muted/50 cursor-pointer transition-colors"
+        className="border-b border-border hover:bg-muted/60 cursor-pointer transition-colors"
       >
         <td className="px-4 py-3">
           <div className="flex items-center gap-3">
@@ -759,7 +794,7 @@ function LeadsContent() {
               "px-3 py-2 text-sm font-medium border-b-2 -mb-px transition-colors",
               activeTab === "all"
                 ? "border-foreground text-foreground"
-                : "border-transparent text-muted-foreground hover:text-foreground"
+                : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"
             )}
           >
             All ({stats.totalLeads})
@@ -769,13 +804,18 @@ function LeadsContent() {
             className={cn(
               "px-3 py-2 text-sm font-medium border-b-2 -mb-px transition-colors flex items-center gap-1.5",
               activeTab === "action"
-                ? "border-foreground text-foreground"
-                : "border-transparent text-muted-foreground hover:text-foreground"
+                ? "border-[var(--status-pending)] text-foreground"
+                : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"
             )}
           >
             Needs Action
             {stats.needsAction > 0 && (
-              <span className="px-1.5 py-0.5 text-xs rounded-full bg-muted">{stats.needsAction}</span>
+              <span className={cn(
+                "px-1.5 py-0.5 text-xs rounded-full font-medium",
+                activeTab === "action"
+                  ? "bg-[var(--status-pending-bg)] text-[var(--status-pending)]"
+                  : "bg-muted text-muted-foreground"
+              )}>{stats.needsAction}</span>
             )}
           </button>
         </div>
@@ -872,8 +912,14 @@ function LeadsContent() {
 
             {/* Leads Display */}
             {filteredLeads.length === 0 ? (
-              <div className="text-center py-12 border border-border rounded-xl bg-card text-muted-foreground text-sm">
-                No leads found
+              <div className="flex flex-col items-center justify-center py-12 border border-border rounded-xl bg-card gap-2">
+                <Search className="h-7 w-7 text-muted-foreground opacity-40" />
+                <p className="text-sm text-muted-foreground">No leads found</p>
+                {searchQuery && (
+                  <button onClick={() => setSearchQuery("")} className="text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground transition-colors">
+                    Clear search
+                  </button>
+                )}
               </div>
             ) : viewMode === "grid" ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">

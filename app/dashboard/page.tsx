@@ -12,7 +12,7 @@ import { useUser } from "@/lib/use-user"
 import { getLeadStatus, getLeadRating, getLeadInitials } from "@/lib/lead-utils"
 import {
   Clock, Star, ChevronRight,
-  ArrowRight
+  ArrowRight, CheckCircle2, Users
 } from "lucide-react"
 import type { Lead } from "@/lib/types"
 import { useEffect } from "react"
@@ -74,7 +74,8 @@ function LeadRow({ lead, index, showBadge, onSelect }: LeadRowProps) {
 export default function DashboardPage() {
   const router = useRouter()
   const { user, loading: userLoading } = useUser()
-  const { data: leads = [], mutate, isValidating } = useSWR<Lead[]>("/api/leads", fetcher)
+  const { data: leadsData, mutate, isValidating } = useSWR<Lead[]>("/api/leads", fetcher)
+  const leads = Array.isArray(leadsData) ? leadsData : []
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null)
 
   useEffect(() => {
@@ -201,29 +202,34 @@ export default function DashboardPage() {
               Good {greeting}, {firstName}
             </h1>
             <p className="text-sm text-muted-foreground mt-1">Here&apos;s your lead overview</p>
+            <div className="mt-5 mx-auto flex items-center justify-center gap-3">
+              <div className="h-px w-12 bg-gradient-to-r from-transparent to-border" />
+              <div className="w-1 h-1 rounded-full bg-border" />
+              <div className="h-px w-12 bg-gradient-to-l from-transparent to-border" />
+            </div>
           </div>
 
           {/* Stats Bar */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <Link href="/leads" className="rounded-lg border border-border bg-card p-4 hover:border-foreground/30 transition-colors border-l-2 border-l-foreground/20">
+            <Link href="/leads" className="rounded-lg border border-border bg-card p-4 hover:border-foreground/30 hover:shadow-sm hover:-translate-y-0.5 transition-all border-l-2 border-l-foreground/20">
               <p className="text-xs text-muted-foreground">Total Leads</p>
               <p className="text-3xl font-semibold mt-1 tracking-tight">{stats.totalLeads}</p>
               <p className="text-xs text-muted-foreground mt-1">{stats.totalLeads > 0 ? "All time" : "No leads yet"}</p>
             </Link>
-            <Link href="/leads?sort=newest" className="rounded-lg border border-border bg-card p-4 hover:border-foreground/30 transition-colors">
+            <Link href="/leads?sort=newest" className="rounded-lg border border-border bg-card p-4 hover:border-foreground/30 hover:shadow-sm hover:-translate-y-0.5 transition-all">
               <p className="text-xs text-muted-foreground">New Today</p>
               <p className="text-3xl font-semibold mt-1 tracking-tight">{stats.newToday}</p>
-              <p className="text-xs text-muted-foreground mt-1">{stats.newToday > 0 ? "Ready to contact" : "No new leads"}</p>
+              <p className={cn("text-xs mt-1", stats.newToday > 0 ? "text-[var(--status-approved)] font-medium" : "text-muted-foreground")}>{stats.newToday > 0 ? "Ready to contact" : "No new leads"}</p>
             </Link>
-            <Link href="/leads?tab=action" className="rounded-lg border border-border bg-card p-4 hover:border-foreground/30 transition-colors border-l-2 border-l-[var(--status-pending)]">
+            <Link href="/leads?tab=action" className="rounded-lg border border-border bg-card p-4 hover:border-foreground/30 hover:shadow-sm hover:-translate-y-0.5 transition-all border-l-2 border-l-[var(--status-pending)]">
               <p className="text-xs text-muted-foreground">Needs Review</p>
               <p className="text-3xl font-semibold mt-1 tracking-tight">{stats.pending}</p>
-              <p className="text-xs text-muted-foreground mt-1">{stats.pending > 0 ? "Action required" : "All caught up"}</p>
+              <p className={cn("text-xs mt-1", stats.pending > 0 ? "text-[var(--status-pending)] font-medium" : "text-muted-foreground")}>{stats.pending > 0 ? "Action required" : "All caught up"}</p>
             </Link>
-            <Link href="/leads?filter=approved" className="rounded-lg border border-border bg-card p-4 hover:border-foreground/30 transition-colors border-l-2 border-l-[var(--status-approved)]">
+            <Link href="/leads?filter=approved" className="rounded-lg border border-border bg-card p-4 hover:border-foreground/30 hover:shadow-sm hover:-translate-y-0.5 transition-all border-l-2 border-l-[var(--status-approved)]">
               <p className="text-xs text-muted-foreground">Approved</p>
               <p className="text-3xl font-semibold mt-1 tracking-tight">{stats.approved}</p>
-              <p className="text-xs text-muted-foreground mt-1">{stats.approved > 0 ? "Ready to convert" : "No approved leads"}</p>
+              <p className={cn("text-xs mt-1", stats.approved > 0 ? "text-[var(--status-approved)] font-medium" : "text-muted-foreground")}>{stats.approved > 0 ? "Ready to convert" : "No approved leads"}</p>
             </Link>
           </div>
 
@@ -248,7 +254,10 @@ export default function DashboardPage() {
                     <LeadRow key={lead.id} lead={lead} index={index} onSelect={setSelectedLead} />
                   ))
                 ) : (
-                  <div className="text-center py-8 text-muted-foreground text-sm">No leads yet</div>
+                  <div className="flex flex-col items-center justify-center py-8 gap-2 text-muted-foreground">
+                    <Users className="h-6 w-6 opacity-40" />
+                    <p className="text-sm">No leads yet</p>
+                  </div>
                 )}
               </div>
             </div>
@@ -272,7 +281,10 @@ export default function DashboardPage() {
                     <LeadRow key={lead.id} lead={lead} showBadge onSelect={setSelectedLead} />
                   ))
                 ) : (
-                  <div className="text-center py-8 text-muted-foreground text-sm">All caught up</div>
+                  <div className="flex flex-col items-center justify-center py-8 gap-2">
+                    <CheckCircle2 className="h-6 w-6 text-[var(--status-approved)] opacity-70" />
+                    <p className="text-sm text-muted-foreground">All caught up</p>
+                  </div>
                 )}
               </div>
             </div>
