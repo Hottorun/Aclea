@@ -63,7 +63,7 @@ function LeadsContent() {
       setActiveTab("action")
     } else if (filter) {
       setActiveTab("all")
-      if (filter) setStatusFilter(filter)
+      setStatusFilter(filter)
     }
   }, [])
 
@@ -102,7 +102,6 @@ function LeadsContent() {
     if (Array.isArray(collectedData)) return collectedData[0] || {}
     return collectedData
   }
-
   const getLeadSource = (lead: Lead): string => {
     const collectedData = getCollectedDataFirst(lead.session?.collectedData)
     if (collectedData?.source) return collectedData.source as string
@@ -110,6 +109,7 @@ function LeadsContent() {
     if (lead.email) return "email"
     return ""
   }
+  const getInitials = (name: string) => name.split(" ").map(n => n[0]).join("").slice(0, 2)
 
   const handleApproveLead = async (leadId: string) => {
     try {
@@ -138,35 +138,43 @@ function LeadsContent() {
   }
 
   const handleBatchApprove = async () => {
-    for (const leadId of selectedActionLeads) {
-      try {
-        await fetch(`/api/leads/${leadId}`, {
+    const ids = Array.from(selectedActionLeads)
+    const results = await Promise.allSettled(
+      ids.map(leadId =>
+        fetch(`/api/leads/${leadId}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ status: "approved" }),
         })
-      } catch (error) {
-        console.error("Failed to approve lead:", error)
-      }
-    }
+      )
+    )
+    const failed = results.filter(r => r.status === "rejected").length
     setSelectedActionLeads(new Set())
     mutate()
+    if (failed > 0) {
+      setToast({ message: `${failed} lead${failed > 1 ? "s" : ""} failed to approve`, id: "" })
+      setTimeout(() => setToast(null), 5000)
+    }
   }
 
   const handleBatchDecline = async () => {
-    for (const leadId of selectedActionLeads) {
-      try {
-        await fetch(`/api/leads/${leadId}`, {
+    const ids = Array.from(selectedActionLeads)
+    const results = await Promise.allSettled(
+      ids.map(leadId =>
+        fetch(`/api/leads/${leadId}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ status: "declined" }),
         })
-      } catch (error) {
-        console.error("Failed to decline lead:", error)
-      }
-    }
+      )
+    )
+    const failed = results.filter(r => r.status === "rejected").length
     setSelectedActionLeads(new Set())
     mutate()
+    if (failed > 0) {
+      setToast({ message: `${failed} lead${failed > 1 ? "s" : ""} failed to decline`, id: "" })
+      setTimeout(() => setToast(null), 5000)
+    }
   }
 
   const toggleSelectAll = () => {
@@ -185,10 +193,6 @@ function LeadsContent() {
       newSet.add(leadId)
     }
     setSelectedActionLeads(newSet)
-  }
-
-  const getInitials = (name: string) => {
-    return name.split(" ").map(n => n[0]).join("").slice(0, 2)
   }
 
   const getTimeAgo = (date: Date | string) => {
@@ -254,22 +258,6 @@ function LeadsContent() {
   const progressPercent = toReviewCount > 0 ? Math.min((reviewedCount / toReviewCount) * 100, 100) : 0
   const minsToFinish = Math.ceil((toReviewCount - reviewedCount) * 0.5)
 
-  const sortLeads = (leadsToSort: Lead[]) => {
-    return [...leadsToSort].sort((a, b) => {
-      const ratingA = getLeadRating(a)
-      const ratingB = getLeadRating(b)
-      switch (sortBy) {
-        case "newest": return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        case "oldest": return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-        case "rating-high": return ratingB - ratingA
-        case "rating-low": return ratingA - ratingB
-        case "name-az": return a.name.localeCompare(b.name)
-        case "name-za": return b.name.localeCompare(a.name)
-        default: return 0
-      }
-    })
-  }
-
   const filteredLeads = useMemo(() => {
     let filtered = leads
 
@@ -289,7 +277,19 @@ function LeadsContent() {
       filtered = filtered.filter(l => getLeadStatus(l) === statusFilter)
     }
 
-    return sortLeads(filtered)
+    return [...filtered].sort((a, b) => {
+      const ratingA = getLeadRating(a)
+      const ratingB = getLeadRating(b)
+      switch (sortBy) {
+        case "newest": return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        case "oldest": return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+        case "rating-high": return ratingB - ratingA
+        case "rating-low": return ratingA - ratingB
+        case "name-az": return a.name.localeCompare(b.name)
+        case "name-za": return b.name.localeCompare(a.name)
+        default: return 0
+      }
+    })
   }, [leads, searchQuery, sourceFilter, statusFilter, sortBy])
 
   const renderLeadCard = (lead: Lead) => {
@@ -619,7 +619,7 @@ function LeadsContent() {
           <p className="text-xs text-muted-foreground mb-3">AI was unsure — your call</p>
           <div className="w-full h-[2px] bg-border opacity-60 mb-4" />
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-            {sortLeads(manualLeads).map((lead) => renderActionCard(lead, false, lead.id))}
+            {[...manualLeads].sort((a, b) => getLeadRating(b) - getLeadRating(a)).map((lead) => renderActionCard(lead, false, lead.id))}
           </div>
         </div>
       )}
@@ -634,7 +634,7 @@ function LeadsContent() {
           <p className="text-xs text-muted-foreground mb-3">AI rejected these — approve only if you disagree</p>
           <div className="w-full h-[2px] bg-border opacity-60 mb-4" />
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-            {sortLeads(declinedLeads).map((lead) => renderActionCard(lead, true, lead.id))}
+            {[...declinedLeads].sort((a, b) => getLeadRating(b) - getLeadRating(a)).map((lead) => renderActionCard(lead, true, lead.id))}
           </div>
         </div>
       )}
