@@ -6,7 +6,8 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Zap, Loader2, Mail, Lock, ArrowLeft } from "lucide-react"
+import { Loader2, Mail, Lock, ArrowLeft } from "lucide-react"
+import { AcleaLogo } from "@/components/aclea-logo"
 import { useTheme } from "next-themes"
 import { translations, type Language, type TranslationKey } from "@/lib/translations"
 
@@ -89,11 +90,8 @@ export default function LoginPage() {
       <div className="w-full max-w-md">
         <div className="bg-card rounded-2xl border border-border shadow-xl p-8">
           <div className="flex flex-col items-center mb-8">
-            <Link href="/" className="flex items-center gap-2 mb-4">
-              <div className="flex size-10 items-center justify-center rounded-xl bg-foreground">
-                <Zap className="size-5 text-background" />
-              </div>
-              <span className="text-xl font-bold text-foreground">aclea</span>
+            <Link href="/" className="mb-4">
+              <AcleaLogo markSize={24} fontSize={22} gap={9} />
             </Link>
             <h1 className="text-xl font-semibold text-foreground">{t("welcomeBack")}</h1>
             <p className="text-muted-foreground mt-1 text-sm">{t("signInToManage")}</p>

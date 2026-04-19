@@ -6,6 +6,7 @@ import { Bell, User, LogOut, Settings, ChevronDown, Loader2, Menu, X, CheckCircl
 import { cn } from "@/lib/utils"
 import { getTimeAgo } from "@/lib/lead-utils"
 import type { Lead } from "@/lib/types"
+import { AcleaLogo } from "@/components/aclea-logo"
 
 interface AppHeaderProps {
   onRefresh: () => void
@@ -15,6 +16,7 @@ interface AppHeaderProps {
     email?: string
   }
   leads?: Lead[]
+  /** Called before any navigation. Return false to block it (handle navigation yourself). */
   navigationGuard?: (path: string, proceed: () => void) => void
 }
 
@@ -145,16 +147,13 @@ export function AppHeader({ onRefresh, isRefreshing, user, leads = [], navigatio
           <div className="flex items-center gap-6">
             <button
               onClick={handleLogoClick}
-              className="flex items-center gap-2 hover:opacity-70 transition-opacity"
+              className="hover:opacity-70 transition-opacity"
             >
-              <div className="flex h-7 w-7 items-center justify-center rounded-md bg-foreground">
-                {isLoading ? (
-                  <Loader2 className="h-4 w-4 text-background animate-spin" />
-                ) : (
-                  <span className="text-xs font-bold text-background">A</span>
-                )}
-              </div>
-              <span className="text-sm font-semibold tracking-tight">aclea</span>
+              {isLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <AcleaLogo markSize={22} fontSize={20} gap={8} />
+              )}
             </button>
 
             <nav className="hidden md:flex items-center gap-1">
@@ -323,14 +322,14 @@ export function AppHeader({ onRefresh, isRefreshing, user, leads = [], navigatio
                 <p className="text-xs text-muted-foreground truncate">{user?.email || ""}</p>
               </div>
               <button
-                onClick={() => router.push("/settings")}
+                onClick={() => navigate("/settings")}
                 className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-muted rounded-md transition-colors"
               >
                 <Settings className="h-4 w-4" />
                 Settings
               </button>
               <button
-                onClick={handleLogout}
+                onClick={() => navigationGuard ? navigationGuard("/login", handleLogout) : handleLogout()}
                 className="w-full flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground hover:bg-muted rounded-md transition-colors"
               >
                 <LogOut className="h-4 w-4" />
