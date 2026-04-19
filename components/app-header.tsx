@@ -15,9 +15,11 @@ interface AppHeaderProps {
     email?: string
   }
   leads?: Lead[]
+  /** Called before any navigation. Return false to block it (handle navigation yourself). */
+  navigationGuard?: (path: string, proceed: () => void) => void
 }
 
-export function AppHeader({ onRefresh, isRefreshing, notificationCount = 0, user, leads = [] }: AppHeaderProps) {
+export function AppHeader({ onRefresh, isRefreshing, notificationCount = 0, user, leads = [], navigationGuard }: AppHeaderProps) {
   const router = useRouter()
   const pathname = usePathname()
   const [showNotifications, setShowNotifications] = useState(false)
@@ -54,10 +56,26 @@ export function AppHeader({ onRefresh, isRefreshing, notificationCount = 0, user
     return "Dashboard"
   }
 
+  const navigate = (path: string) => {
+    if (navigationGuard) {
+      navigationGuard(path, () => router.push(path))
+    } else {
+      router.push(path)
+    }
+  }
+
   const handleLogoClick = () => {
-    setIsLoading(true)
-    router.push("/dashboard")
-    setTimeout(() => setIsLoading(false), 1000)
+    if (navigationGuard) {
+      navigationGuard("/dashboard", () => {
+        setIsLoading(true)
+        router.push("/dashboard")
+        setTimeout(() => setIsLoading(false), 1000)
+      })
+    } else {
+      setIsLoading(true)
+      router.push("/dashboard")
+      setTimeout(() => setIsLoading(false), 1000)
+    }
   }
 
   const navItems = [
@@ -162,7 +180,7 @@ export function AppHeader({ onRefresh, isRefreshing, notificationCount = 0, user
                 return (
                   <button
                     key={item.name}
-                    onClick={() => router.push(item.path)}
+                    onClick={() => navigate(item.path)}
                     className={cn(
                       "px-3 py-1.5 text-sm rounded-md transition-colors",
                       isActive
@@ -277,7 +295,7 @@ export function AppHeader({ onRefresh, isRefreshing, notificationCount = 0, user
                   </div>
                   <div className="py-1">
                     <button
-                      onClick={() => router.push("/settings")}
+                      onClick={() => navigate("/settings")}
                       className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-muted transition-colors"
                     >
                       <Settings className="h-4 w-4" />
@@ -285,8 +303,15 @@ export function AppHeader({ onRefresh, isRefreshing, notificationCount = 0, user
                     </button>
                     <button
                       onClick={async () => {
-                        await fetch("/api/auth", { method: "DELETE" })
-                        router.push("/login")
+                        const doLogout = async () => {
+                          await fetch("/api/auth", { method: "DELETE" })
+                          router.push("/login")
+                        }
+                        if (navigationGuard) {
+                          navigationGuard("/login", doLogout)
+                        } else {
+                          await doLogout()
+                        }
                       }}
                       className="w-full flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground hover:bg-muted transition-colors"
                     >
@@ -317,7 +342,7 @@ export function AppHeader({ onRefresh, isRefreshing, notificationCount = 0, user
                 return (
                   <button
                     key={item.name}
-                    onClick={() => router.push(item.path)}
+                    onClick={() => navigate(item.path)}
                     className={cn(
                       "w-full text-left px-3 py-2.5 text-sm rounded-md transition-colors",
                       isActive
@@ -336,7 +361,7 @@ export function AppHeader({ onRefresh, isRefreshing, notificationCount = 0, user
                 <p className="text-xs text-muted-foreground truncate">{user?.email || ""}</p>
               </div>
               <button
-                onClick={() => router.push("/settings")}
+                onClick={() => navigate("/settings")}
                 className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-muted rounded-md transition-colors"
               >
                 <Settings className="h-4 w-4" />
@@ -344,8 +369,15 @@ export function AppHeader({ onRefresh, isRefreshing, notificationCount = 0, user
               </button>
               <button
                 onClick={async () => {
-                  await fetch("/api/auth", { method: "DELETE" })
-                  router.push("/login")
+                  const doLogout = async () => {
+                    await fetch("/api/auth", { method: "DELETE" })
+                    router.push("/login")
+                  }
+                  if (navigationGuard) {
+                    navigationGuard("/login", doLogout)
+                  } else {
+                    await doLogout()
+                  }
                 }}
                 className="w-full flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground hover:bg-muted rounded-md transition-colors"
               >

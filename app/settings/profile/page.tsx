@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { ArrowLeft, User, Mail, Save, Check, Loader2, Briefcase, Users } from "lucide-react"
+import { ArrowLeft, Check, Loader2 } from "lucide-react"
 import { ThemeBackground } from "@/lib/use-theme-gradient"
 import { cn } from "@/lib/utils"
 
@@ -141,6 +141,7 @@ export default function ProfilePage() {
                   type="text"
                   value={profile.firstName}
                   onChange={(e) => setProfile({ ...profile, firstName: e.target.value })}
+                  onBlur={handleSave}
                   className="w-full h-9 px-3 rounded-md border border-border bg-background text-sm focus:outline-none focus:ring-1 focus:ring-foreground/20"
                 />
               </div>
@@ -150,6 +151,7 @@ export default function ProfilePage() {
                   type="text"
                   value={profile.lastName}
                   onChange={(e) => setProfile({ ...profile, lastName: e.target.value })}
+                  onBlur={handleSave}
                   className="w-full h-9 px-3 rounded-md border border-border bg-background text-sm focus:outline-none focus:ring-1 focus:ring-foreground/20"
                 />
               </div>
@@ -171,6 +173,7 @@ export default function ProfilePage() {
                 type="text"
                 value={profile.industry}
                 onChange={(e) => setProfile({ ...profile, industry: e.target.value })}
+                onBlur={handleSave}
                 placeholder="e.g., Construction, Real Estate"
                 className="w-full h-9 px-3 rounded-md border border-border bg-background text-sm focus:outline-none focus:ring-1 focus:ring-foreground/20"
               />
@@ -188,33 +191,22 @@ export default function ProfilePage() {
               </div>
             )}
 
-            {/* Actions */}
-            <div className="flex justify-end gap-2 pt-3 border-t border-border">
+            <div className="flex items-center justify-between pt-3 border-t border-border">
               <button
                 onClick={() => router.push("/settings")}
-                className="px-4 py-1.5 text-sm text-muted-foreground hover:text-foreground rounded-md hover:bg-muted transition-colors"
+                className="px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground rounded-md hover:bg-muted transition-colors"
               >
-                Cancel
+                Back
               </button>
-              <button
-                onClick={handleSave}
-                disabled={isSaving}
-                className={cn(
-                  "px-4 py-1.5 text-sm rounded-md transition-all flex items-center gap-1.5",
-                  saved
-                    ? "bg-foreground/80 text-background"
-                    : "bg-foreground text-background hover:bg-foreground/90"
-                )}
-              >
-                {isSaving ? (
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                ) : saved ? (
-                  <Check className="h-3.5 w-3.5" />
-                ) : (
-                  <Save className="h-3.5 w-3.5" />
-                )}
-                {saved ? "Saved" : "Save"}
-              </button>
+              <span className={cn(
+                "flex items-center gap-1.5 text-xs transition-opacity duration-300",
+                isSaving || saved ? "opacity-100" : "opacity-0"
+              )}>
+                {isSaving
+                  ? <><Loader2 className="h-3 w-3 animate-spin text-muted-foreground" /><span className="text-muted-foreground">Saving…</span></>
+                  : <><Check className="h-3 w-3 text-emerald-500" /><span className="text-emerald-600">Saved</span></>
+                }
+              </span>
             </div>
           </div>
         </div>

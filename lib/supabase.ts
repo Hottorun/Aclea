@@ -563,7 +563,7 @@ export async function updateSettings(teamId: string, settings: Partial<AppSettin
       priority_detection: settings.priorityDetection,
       duplicate_detection: settings.duplicateDetection,
       ai_instructions: settings.aiInstructions,
-    })
+    }, { onConflict: "team_id" })
     .select()
     .single()
 
@@ -644,6 +644,13 @@ export async function getUserSettings(userId?: string): Promise<UserSettings> {
     notifyManualReview: data.notify_manual_review ?? true,
     notifyDailySummary: data.notify_daily_summary ?? false,
     notifyWeeklyReport: data.notify_weekly_report ?? true,
+    showPhonePublic: data.show_phone_public ?? false,
+    showEmailPublic: data.show_email_public ?? false,
+    showLocationPublic: data.show_location_public ?? false,
+    autoDeleteOld: data.auto_delete_old ?? true,
+    dataRetentionDays: data.data_retention_days ?? 90,
+    analyticsEnabled: data.analytics_enabled ?? true,
+    errorTracking: data.error_tracking ?? true,
   }
 }
 
@@ -668,6 +675,13 @@ export async function updateUserSettings(userId: string, settings: Partial<UserS
       notify_manual_review: settings.notifyManualReview,
       notify_daily_summary: settings.notifyDailySummary,
       notify_weekly_report: settings.notifyWeeklyReport,
+      show_phone_public: settings.showPhonePublic,
+      show_email_public: settings.showEmailPublic,
+      show_location_public: settings.showLocationPublic,
+      auto_delete_old: settings.autoDeleteOld,
+      data_retention_days: settings.dataRetentionDays,
+      analytics_enabled: settings.analyticsEnabled,
+      error_tracking: settings.errorTracking,
       updated_at: new Date().toISOString(),
     }, {
       onConflict: 'user_id',
@@ -691,6 +705,13 @@ export async function updateUserSettings(userId: string, settings: Partial<UserS
     notifyManualReview: data.notify_manual_review ?? true,
     notifyDailySummary: data.notify_daily_summary ?? false,
     notifyWeeklyReport: data.notify_weekly_report ?? true,
+    showPhonePublic: data.show_phone_public ?? false,
+    showEmailPublic: data.show_email_public ?? false,
+    showLocationPublic: data.show_location_public ?? false,
+    autoDeleteOld: data.auto_delete_old ?? true,
+    dataRetentionDays: data.data_retention_days ?? 90,
+    analyticsEnabled: data.analytics_enabled ?? true,
+    errorTracking: data.error_tracking ?? true,
   }
 }
 
