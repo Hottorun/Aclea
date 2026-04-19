@@ -15,9 +15,11 @@ interface AppHeaderProps {
     email?: string
   }
   leads?: Lead[]
+  /** Called before any navigation. Return false to block it (handle navigation yourself). */
+  navigationGuard?: (path: string, proceed: () => void) => void
 }
 
-export function AppHeader({ onRefresh, isRefreshing, user, leads = [] }: AppHeaderProps) {
+export function AppHeader({ onRefresh, isRefreshing, user, leads = [], navigationGuard }: AppHeaderProps) {
   const router = useRouter()
   const pathname = usePathname()
   const [showNotifications, setShowNotifications] = useState(false)
@@ -45,9 +47,24 @@ export function AppHeader({ onRefresh, isRefreshing, user, leads = [] }: AppHead
     setShowMobileMenu(false)
   }, [pathname])
 
+  const navigate = (path: string) => {
+    if (navigationGuard) {
+      navigationGuard(path, () => router.push(path))
+    } else {
+      router.push(path)
+    }
+  }
+
   const handleLogoClick = () => {
-    setIsLoading(true)
-    router.push("/dashboard")
+    if (navigationGuard) {
+      navigationGuard("/dashboard", () => {
+        setIsLoading(true)
+        router.push("/dashboard")
+      })
+    } else {
+      setIsLoading(true)
+      router.push("/dashboard")
+    }
   }
 
   // Stop spinner once navigation completes (pathname changes)
@@ -71,6 +88,7 @@ export function AppHeader({ onRefresh, isRefreshing, user, leads = [] }: AppHead
     { name: "Dashboard", path: "/dashboard" },
     { name: "Leads", path: "/leads" },
     { name: "Analytics", path: "/analytics" },
+    { name: "Calendar", path: "/calendar" },
   ]
 
   const notifications = leads
@@ -144,7 +162,7 @@ export function AppHeader({ onRefresh, isRefreshing, user, leads = [] }: AppHead
                 return (
                   <button
                     key={item.name}
-                    onClick={() => router.push(item.path)}
+                    onClick={() => navigate(item.path)}
                     className={cn(
                       "px-3 py-1.5 text-sm rounded-md transition-colors",
                       isActive
@@ -248,14 +266,14 @@ export function AppHeader({ onRefresh, isRefreshing, user, leads = [] }: AppHead
                   </div>
                   <div className="py-1">
                     <button
-                      onClick={() => router.push("/settings")}
+                      onClick={() => navigate("/settings")}
                       className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-muted transition-colors"
                     >
                       <Settings className="h-4 w-4" />
                       Settings
                     </button>
                     <button
-                      onClick={handleLogout}
+                      onClick={() => navigationGuard ? navigationGuard("/login", handleLogout) : handleLogout()}
                       className="w-full flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground hover:bg-muted transition-colors"
                     >
                       <LogOut className="h-4 w-4" />
@@ -285,7 +303,7 @@ export function AppHeader({ onRefresh, isRefreshing, user, leads = [] }: AppHead
                 return (
                   <button
                     key={item.name}
-                    onClick={() => router.push(item.path)}
+                    onClick={() => navigate(item.path)}
                     className={cn(
                       "w-full text-left px-3 py-2.5 text-sm rounded-md transition-colors",
                       isActive
@@ -304,14 +322,14 @@ export function AppHeader({ onRefresh, isRefreshing, user, leads = [] }: AppHead
                 <p className="text-xs text-muted-foreground truncate">{user?.email || ""}</p>
               </div>
               <button
-                onClick={() => router.push("/settings")}
+                onClick={() => navigate("/settings")}
                 className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-muted rounded-md transition-colors"
               >
                 <Settings className="h-4 w-4" />
                 Settings
               </button>
               <button
-                onClick={handleLogout}
+                onClick={() => navigationGuard ? navigationGuard("/login", handleLogout) : handleLogout()}
                 className="w-full flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground hover:bg-muted rounded-md transition-colors"
               >
                 <LogOut className="h-4 w-4" />

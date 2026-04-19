@@ -157,6 +157,14 @@ export interface UserSettings {
   notifyManualReview?: boolean
   notifyDailySummary?: boolean
   notifyWeeklyReport?: boolean
+  // Privacy
+  showPhonePublic?: boolean
+  showEmailPublic?: boolean
+  showLocationPublic?: boolean
+  autoDeleteOld?: boolean
+  dataRetentionDays?: number
+  analyticsEnabled?: boolean
+  errorTracking?: boolean
 }
 
 export interface LeadStats {

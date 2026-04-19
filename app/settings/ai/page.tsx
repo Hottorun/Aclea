@@ -22,7 +22,8 @@ export default function AISettingsPage() {
   }, [user, userLoading, router])
 
   useEffect(() => {
-    if (!user?.teamId) return
+    if (userLoading) return
+    if (!user?.teamId) { setIsLoading(false); return }
 
     fetch("/api/settings")
       .then(res => res.json())
@@ -49,7 +50,7 @@ export default function AISettingsPage() {
       })
       .catch(console.error)
       .finally(() => setIsLoading(false))
-  }, [user?.teamId])
+  }, [user?.teamId, userLoading])
 
   const showToast = (message: string, type: "success" | "error" | "info" = "info") => {
     setToast({ message, type })
@@ -100,6 +101,19 @@ export default function AISettingsPage() {
 
   const handleInstructionsChange = (value: string) => {
     setPreferences({ ...preferences!, aiInstructions: value })
+  }
+
+  const handleInstructionsBlur = async () => {
+    if (!preferences || !user?.teamId) return
+    try {
+      await fetch("/api/settings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ aiInstructions: preferences.aiInstructions }),
+      })
+    } catch {
+      showToast("Error saving instructions", "error")
+    }
   }
 
   const handleSaveAll = async () => {
@@ -509,6 +523,7 @@ export default function AISettingsPage() {
                 <textarea
                   value={preferences.aiInstructions || ""}
                   onChange={(e) => handleInstructionsChange(e.target.value)}
+                  onBlur={handleInstructionsBlur}
                   disabled={!preferences.aiEnabled}
                   placeholder="E.g., Always prioritize leads from Los Angeles, decline inquiries for projects under $1000, flag leads mentioning 'urgent' as high priority..."
                   className={cn(
@@ -523,19 +538,14 @@ export default function AISettingsPage() {
               </div>
             </div>
 
-            <div className="pt-4 border-t border-border flex gap-3">
+            <div className="pt-4 border-t border-border flex items-center justify-between">
               <button
                 onClick={handleResetDefaults}
                 className="px-4 py-2 text-sm font-medium text-muted-foreground hover:bg-muted rounded-lg transition-colors cursor-pointer"
               >
                 Reset to Defaults
               </button>
-              <button
-                onClick={handleSaveAll}
-                className="flex-1 px-4 py-2.5 bg-foreground text-background text-sm font-medium rounded-lg hover:bg-foreground/90 transition-colors cursor-pointer"
-              >
-                Save All Settings
-              </button>
+              <p className="text-xs text-muted-foreground">Changes save automatically</p>
             </div>
           </div>
         </div>
