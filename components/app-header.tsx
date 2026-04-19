@@ -150,7 +150,7 @@ export function AppHeader({ onRefresh, isRefreshing, user, leads = [], navigatio
               {isLoading ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
-                <AcleaLogo markSize={20} fontSize={15} gap={8} />
+                <AcleaLogo markSize={22} fontSize={20} gap={8} />
               )}
             </button>
 

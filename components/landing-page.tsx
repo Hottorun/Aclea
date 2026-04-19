@@ -372,8 +372,8 @@ function HeroHeader({ t, language, toggleLanguage }: HeroHeaderProps) {
 function Logo({ className }: { className?: string }) {
   return (
     <AcleaLogo
-      markSize={22}
-      fontSize={17}
+      markSize={24}
+      fontSize={22}
       gap={9}
       fg="#f5f4f0"
       className={className}
@@ -494,7 +494,7 @@ function Footer({ t }: FooterProps) {
         <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-6">
           <div className="lg:col-span-2">
             <Link href="/">
-              <AcleaLogo markSize={22} fontSize={17} gap={9} fg="#f5f4f0" />
+              <AcleaLogo markSize={24} fontSize={22} gap={9} fg="#f5f4f0" />
             </Link>
             <p className="mt-4 text-sm text-white/60 max-w-xs">
               {t('subtitle').slice(0, 100)}...
