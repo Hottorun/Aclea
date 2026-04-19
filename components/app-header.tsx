@@ -6,6 +6,7 @@ import { Bell, User, LogOut, Settings, ChevronDown, Loader2, Menu, X, CheckCircl
 import { cn } from "@/lib/utils"
 import { getTimeAgo } from "@/lib/lead-utils"
 import type { Lead } from "@/lib/types"
+import { AcleaLogo } from "@/components/aclea-logo"
 
 interface AppHeaderProps {
   onRefresh: () => void
@@ -144,16 +145,13 @@ export function AppHeader({ onRefresh, isRefreshing, user, leads = [], navigatio
           <div className="flex items-center gap-6">
             <button
               onClick={handleLogoClick}
-              className="flex items-center gap-2 hover:opacity-70 transition-opacity"
+              className="hover:opacity-70 transition-opacity"
             >
-              <div className="flex h-7 w-7 items-center justify-center rounded-md bg-foreground">
-                {isLoading ? (
-                  <Loader2 className="h-4 w-4 text-background animate-spin" />
-                ) : (
-                  <span className="text-xs font-bold text-background">A</span>
-                )}
-              </div>
-              <span className="text-sm font-semibold tracking-tight">aclea</span>
+              {isLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <AcleaLogo markSize={20} fontSize={15} gap={8} />
+              )}
             </button>
 
             <nav className="hidden md:flex items-center gap-1">

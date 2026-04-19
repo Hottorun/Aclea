@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { useLanguage } from './language-provider'
 import { HeroGeometric } from '@/components/ui/shape-landing-hero'
+import { AcleaLogo } from '@/components/aclea-logo'
 
 function ForceLightMode() {
   useEffect(() => {
@@ -370,12 +371,13 @@ function HeroHeader({ t, language, toggleLanguage }: HeroHeaderProps) {
 
 function Logo({ className }: { className?: string }) {
   return (
-    <div className={cn('flex items-center gap-2', className)}>
-      <div className="flex size-8 items-center justify-center rounded-lg bg-emerald-600">
-        <Zap className="size-5 text-white" />
-      </div>
-      <span className="text-lg font-semibold text-white">Aclea</span>
-    </div>
+    <AcleaLogo
+      markSize={22}
+      fontSize={17}
+      gap={9}
+      fg="#f5f4f0"
+      className={className}
+    />
   )
 }
 
@@ -491,11 +493,8 @@ function Footer({ t }: FooterProps) {
       <div className="mx-auto max-w-7xl px-6 py-12 md:py-16">
         <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-6">
           <div className="lg:col-span-2">
-            <Link href="/" className="flex items-center gap-2">
-              <div className="flex size-8 items-center justify-center rounded-lg bg-emerald-600">
-                <Zap className="size-5 text-white" />
-              </div>
-              <span className="text-lg font-semibold text-white">Aclea</span>
+            <Link href="/">
+              <AcleaLogo markSize={22} fontSize={17} gap={9} fg="#f5f4f0" />
             </Link>
             <p className="mt-4 text-sm text-white/60 max-w-xs">
               {t('subtitle').slice(0, 100)}...
