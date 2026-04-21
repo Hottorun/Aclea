@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
+import { mutate } from "swr"
 import { ArrowLeft, Check, Loader2 } from "lucide-react"
 import { ThemeBackground } from "@/lib/use-theme-gradient"
 import { cn } from "@/lib/utils"
@@ -72,6 +73,7 @@ export default function ProfilePage() {
       if (res.ok) {
         setSaved(true)
         setTimeout(() => setSaved(false), 2000)
+        mutate("/api/auth")
       } else {
         setError("Failed to save profile")
       }

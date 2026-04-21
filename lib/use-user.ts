@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import useSWR from "swr"
 
 export interface User {
   id: string
@@ -11,23 +11,13 @@ export interface User {
   teamRole?: "owner" | "admin" | "member"
 }
 
+const fetcher = (url: string) => fetch(url).then(res => res.json())
+
 export function useUser() {
-  const [user, setUser] = useState<User | null>(null)
-  const [loading, setLoading] = useState(true)
+  const { data, isLoading } = useSWR("/api/auth", fetcher)
 
-  useEffect(() => {
-    fetch("/api/auth")
-      .then(res => res.json())
-      .then(data => {
-        setUser(data.user || null)
-      })
-      .catch(() => {
-        setUser(null)
-      })
-      .finally(() => {
-        setLoading(false)
-      })
-  }, [])
-
-  return { user, loading }
+  return {
+    user: (data?.user as User) ?? null,
+    loading: isLoading,
+  }
 }
