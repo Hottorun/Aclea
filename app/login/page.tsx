@@ -33,6 +33,13 @@ export default function LoginPage() {
   }, [])
 
   useEffect(() => {
+    document.documentElement.classList.remove("dark")
+    document.documentElement.removeAttribute("data-mode")
+    document.documentElement.style.background = "#F5F5F4"
+    document.documentElement.style.colorScheme = "light"
+  }, [])
+
+  useEffect(() => {
     fetch("/api/auth")
       .then((res) => res.json())
       .then((data) => {

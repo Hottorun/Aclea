@@ -16,6 +16,14 @@ import {
   MessageSquare,
   ExternalLink,
   Check,
+  Sparkles,
+  ChevronDown,
+  ChevronUp,
+  ClipboardCopy,
+  Mail,
+  MessageCircle,
+  Reply,
+  AtSign,
 } from "lucide-react"
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -172,6 +180,189 @@ function SystemDivider({ text }: { text: string }) {
   )
 }
 
+function AIContextBox({
+  lead,
+  onInsert,
+}: {
+  lead: Lead
+  onInsert: (text: string) => void
+}) {
+  const [expanded, setExpanded] = useState(false)
+  const [copied, setCopied] = useState(false)
+
+  const cd = lead.session?.collectedData
+  const ratingReason = lead.session?.ratingReason ?? lead.ratingReason
+  const summary = cd?.conversationSummary ?? lead.conversationSummary
+
+  const dataFields: { label: string; value: string }[] = []
+  if (cd?.workType || lead.workType) dataFields.push({ label: "Work type", value: getSafeString(cd?.workType ?? lead.workType) })
+  if (cd?.location || lead.location) dataFields.push({ label: "Location", value: getSafeString(cd?.location ?? lead.location) })
+  if (cd?.budget) dataFields.push({ label: "Budget", value: getSafeString(cd.budget) })
+  if (cd?.timeline) dataFields.push({ label: "Timeline", value: getSafeString(cd.timeline) })
+  if (cd?.message) dataFields.push({ label: "Initial message", value: getSafeString(cd.message) })
+
+  const hasContent = ratingReason || summary || dataFields.length > 0
+  if (!hasContent) return null
+
+  const contextText = [
+    summary ? `Summary: ${summary}` : null,
+    ratingReason ? `AI rating reason: ${ratingReason}` : null,
+    ...dataFields.map((f) => `${f.label}: ${f.value}`),
+  ]
+    .filter(Boolean)
+    .join("\n")
+
+  function handleCopy() {
+    navigator.clipboard.writeText(contextText)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  return (
+    <div className="mx-4 my-2 rounded-xl border border-[#5c3fff]/30 bg-[#5c3fff]/5 overflow-hidden">
+      {/* Header row — always visible */}
+      <button
+        onClick={() => setExpanded((v) => !v)}
+        className="w-full flex items-center gap-2 px-3.5 py-2.5 text-left hover:bg-[#5c3fff]/10 transition-colors"
+      >
+        <Sparkles className="h-3.5 w-3.5 shrink-0" style={{ color: "#5c3fff" }} />
+        <span className="flex-1 text-xs font-semibold" style={{ color: "#5c3fff" }}>
+          AI Context — see what the AI handled before you
+        </span>
+        {expanded ? (
+          <ChevronUp className="h-3.5 w-3.5 shrink-0" style={{ color: "#5c3fff" }} />
+        ) : (
+          <ChevronDown className="h-3.5 w-3.5 shrink-0" style={{ color: "#5c3fff" }} />
+        )}
+      </button>
+
+      {/* Expanded body */}
+      {expanded && (
+        <div className="px-3.5 pb-3.5 space-y-3">
+          {summary && (
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">
+                Conversation Summary
+              </p>
+              <p className="text-xs text-foreground leading-relaxed">{summary}</p>
+            </div>
+          )}
+
+          {ratingReason && (
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">
+                AI Rating Reason
+              </p>
+              <p className="text-xs text-foreground leading-relaxed">{ratingReason}</p>
+            </div>
+          )}
+
+          {dataFields.length > 0 && (
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-1.5">
+                Collected Data
+              </p>
+              <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+                {dataFields.map((f) => (
+                  <div key={f.label}>
+                    <span className="text-[10px] text-muted-foreground">{f.label}: </span>
+                    <span className="text-[10px] font-medium text-foreground">{f.value}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Action row */}
+          <div className="flex items-center gap-2 pt-1">
+            <button
+              onClick={() => onInsert(contextText)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white transition-opacity hover:opacity-90"
+              style={{ backgroundColor: "#5c3fff" }}
+            >
+              <Send className="h-3 w-3" />
+              Insert into message
+            </button>
+            <button
+              onClick={handleCopy}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border border-border hover:bg-muted transition-colors"
+            >
+              <ClipboardCopy className="h-3 w-3" />
+              {copied ? "Copied!" : "Copy"}
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ─── Email message card ───────────────────────────────────────────────────────
+
+function EmailMessageCard({
+  msg,
+  lead,
+  isFirst,
+}: {
+  msg: LocalMessage
+  lead: Lead
+  isFirst?: boolean
+}) {
+  const [collapsed, setCollapsed] = useState(!isFirst && msg.from !== "me")
+  const isSent = msg.from === "me"
+
+  const fromLabel = isSent ? "You" : lead.name
+  const fromEmail = isSent ? null : lead.email
+  const toLabel = isSent ? lead.name : "You"
+  const preview = msg.text.slice(0, 80) + (msg.text.length > 80 ? "…" : "")
+
+  return (
+    <div className="border border-border rounded-xl bg-background overflow-hidden shadow-sm">
+      {/* Email card header — always visible */}
+      <button
+        onClick={() => setCollapsed((v) => !v)}
+        className="w-full flex items-start gap-3 px-4 py-3 hover:bg-muted/40 transition-colors text-left"
+      >
+        <Avatar name={fromLabel} size={32} />
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-sm font-semibold truncate">
+              {fromLabel}
+              {fromEmail && (
+                <span className="font-normal text-muted-foreground ml-1 text-xs">
+                  &lt;{fromEmail}&gt;
+                </span>
+              )}
+            </span>
+            <span className="text-[11px] text-muted-foreground shrink-0">{msg.time}</span>
+          </div>
+          {collapsed ? (
+            <p className="text-xs text-muted-foreground truncate mt-0.5">{preview}</p>
+          ) : (
+            <p className="text-xs text-muted-foreground mt-0.5">
+              to <span className="font-medium text-foreground">{toLabel}</span>
+            </p>
+          )}
+        </div>
+        <ChevronDown
+          className={cn("h-3.5 w-3.5 text-muted-foreground shrink-0 mt-0.5 transition-transform", !collapsed && "rotate-180")}
+        />
+      </button>
+
+      {/* Expanded body */}
+      {!collapsed && (
+        <div className="px-4 pb-4 pt-1">
+          <div className="border-t border-border/60 pt-3">
+            <p className="text-sm leading-relaxed whitespace-pre-wrap break-words text-foreground">
+              {msg.text}
+            </p>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function MessagesPage() {
@@ -245,13 +436,19 @@ export default function MessagesPage() {
     }
   }
 
+  function insertContext(text: string) {
+    setComposerText((prev) => (prev ? `${prev}\n\n${text}` : text))
+    textareaRef.current?.focus()
+  }
+
   function applyTemplate(template: (typeof TEMPLATES)[number]) {
     if (!selectedLead) return
     const company = getCompany(selectedLead) || selectedLead.name
     const filled = template.text
       .replace(/{name}/g, selectedLead.name)
       .replace(/{company}/g, company)
-    sendMessage(filled)
+    setComposerText(filled)
+    textareaRef.current?.focus()
   }
 
   function handleViewLead(lead: Lead) {
@@ -341,9 +538,16 @@ export default function MessagesPage() {
                           {score}%
                         </span>
                       </div>
-                      <p className="text-xs text-muted-foreground truncate mt-0.5">
-                        {company || lead.email || "—"}
-                      </p>
+                      <div className="flex items-center gap-1.5 mt-0.5">
+                        {getChannel(lead) === "WhatsApp" ? (
+                          <MessageCircle className="h-3 w-3 shrink-0 text-green-600 dark:text-green-400" />
+                        ) : (
+                          <Mail className="h-3 w-3 shrink-0 text-blue-500 dark:text-blue-400" />
+                        )}
+                        <p className="text-xs text-muted-foreground truncate">
+                          {company || lead.email || "—"}
+                        </p>
+                      </div>
                     </div>
 
                     {/* Unread dot */}
@@ -381,52 +585,85 @@ export default function MessagesPage() {
               />
 
               {/* Messages thread */}
-              <div className="flex-1 overflow-y-auto px-6 py-4 space-y-1">
-                {messages.map((msg) => {
-                  if (msg.from === "system") {
-                    return <SystemDivider key={msg.id} text={msg.text} />
-                  }
-
-                  const isSent = msg.from === "me"
-                  return (
-                    <div
-                      key={msg.id}
-                      className={cn(
-                        "flex items-end gap-2 max-w-[75%]",
-                        isSent ? "ml-auto flex-row-reverse" : "mr-auto"
-                      )}
-                    >
-                      {!isSent && (
-                        <div className="mb-1 shrink-0">
-                          <Avatar name={selectedLead.name} size={24} />
+              {getChannel(selectedLead) === "Email" ? (
+                /* ── Email thread layout ─────────────────────────────── */
+                <div className="flex-1 overflow-y-auto px-6 py-4 space-y-3">
+                  {messages.map((msg, i) => {
+                    if (msg.from === "system") {
+                      return (
+                        <div key={msg.id}>
+                          <SystemDivider text={msg.text} />
+                          <AIContextBox lead={selectedLead} onInsert={insertContext} />
                         </div>
-                      )}
-                      <div>
-                        <div
-                          className={cn(
-                            isSent
-                              ? "bg-foreground text-background rounded-2xl rounded-br-sm px-3.5 py-2.5"
-                              : "bg-background border border-border rounded-2xl rounded-bl-sm px-3.5 py-2.5"
-                          )}
-                        >
-                          <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">
-                            {msg.text}
+                      )
+                    }
+                    const nonSystemMsgs = messages.filter((m) => m.from !== "system")
+                    const isFirst = msg.id === nonSystemMsgs[0]?.id
+                    return (
+                      <EmailMessageCard
+                        key={msg.id}
+                        msg={msg}
+                        lead={selectedLead}
+                        isFirst={isFirst}
+                      />
+                    )
+                  })}
+                  <div ref={messagesEndRef} />
+                </div>
+              ) : (
+                /* ── WhatsApp chat bubbles ────────────────────────────── */
+                <div className="flex-1 overflow-y-auto px-6 py-4 space-y-1">
+                  {messages.map((msg) => {
+                    if (msg.from === "system") {
+                      return (
+                        <div key={msg.id}>
+                          <SystemDivider text={msg.text} />
+                          <AIContextBox lead={selectedLead} onInsert={insertContext} />
+                        </div>
+                      )
+                    }
+
+                    const isSent = msg.from === "me"
+                    return (
+                      <div
+                        key={msg.id}
+                        className={cn(
+                          "flex items-end gap-2 max-w-[75%]",
+                          isSent ? "ml-auto flex-row-reverse" : "mr-auto"
+                        )}
+                      >
+                        {!isSent && (
+                          <div className="mb-1 shrink-0">
+                            <Avatar name={selectedLead.name} size={24} />
+                          </div>
+                        )}
+                        <div>
+                          <div
+                            className={cn(
+                              isSent
+                                ? "bg-foreground text-background rounded-2xl rounded-br-sm px-3.5 py-2.5"
+                                : "bg-background border border-border rounded-2xl rounded-bl-sm px-3.5 py-2.5"
+                            )}
+                          >
+                            <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">
+                              {msg.text}
+                            </p>
+                          </div>
+                          <p
+                            className={cn(
+                              "text-[10px] text-muted-foreground mt-1",
+                              isSent ? "text-right" : "text-left"
+                            )}
+                          >
+                            {msg.time}
                           </p>
                         </div>
-                        <p
-                          className={cn(
-                            "text-[10px] text-muted-foreground mt-1",
-                            isSent ? "text-right" : "text-left"
-                          )}
-                        >
-                          {msg.time}
-                        </p>
                       </div>
-                    </div>
-                  )
-                })}
-                <div ref={messagesEndRef} />
-              </div>
+                    )
+                  })}
+                  <div ref={messagesEndRef} />
+                </div>
+              )}
 
               {/* Template chips */}
               <div className="px-4 py-2 border-t border-border shrink-0">
@@ -446,12 +683,27 @@ export default function MessagesPage() {
               {/* Composer */}
               <div className="px-4 pb-4 pt-2 shrink-0">
                 <div className="bg-background border-2 border-border rounded-2xl focus-within:border-foreground transition-colors">
+                  {/* Email: show To header */}
+                  {getChannel(selectedLead) === "Email" && (
+                    <div className="flex items-center gap-2 px-4 pt-3 pb-2 border-b border-border/60">
+                      <Reply className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                      <span className="text-xs text-muted-foreground">Reply to</span>
+                      <div className="flex items-center gap-1.5 bg-muted rounded-full px-2.5 py-1">
+                        <AtSign className="h-3 w-3 text-muted-foreground" />
+                        <span className="text-xs font-medium">{selectedLead.email || selectedLead.name}</span>
+                      </div>
+                    </div>
+                  )}
                   <textarea
                     ref={textareaRef}
                     value={composerText}
                     onChange={(e) => setComposerText(e.target.value)}
                     onKeyDown={handleKeyDown}
-                    placeholder={`Message ${selectedLead.name}...`}
+                    placeholder={
+                      getChannel(selectedLead) === "Email"
+                        ? `Write your reply to ${selectedLead.name}...`
+                        : `Message ${selectedLead.name}...`
+                    }
                     rows={3}
                     className="w-full px-4 pt-3 pb-1 text-sm bg-transparent resize-none focus:outline-none placeholder:text-muted-foreground"
                   />
@@ -460,9 +712,11 @@ export default function MessagesPage() {
                       <button className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors">
                         <Paperclip className="h-4 w-4" />
                       </button>
-                      <button className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors">
-                        <Smile className="h-4 w-4" />
-                      </button>
+                      {getChannel(selectedLead) === "WhatsApp" && (
+                        <button className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors">
+                          <Smile className="h-4 w-4" />
+                        </button>
+                      )}
                     </div>
                     <div className="flex items-center gap-3">
                       <span className="text-[11px] text-muted-foreground hidden sm:block">
@@ -473,8 +727,12 @@ export default function MessagesPage() {
                         disabled={!composerText.trim()}
                         className="bg-foreground text-background rounded-xl px-4 py-2 text-sm font-semibold disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5 transition-opacity"
                       >
-                        <Send className="h-3.5 w-3.5" />
-                        Send
+                        {getChannel(selectedLead) === "Email" ? (
+                          <Reply className="h-3.5 w-3.5" />
+                        ) : (
+                          <Send className="h-3.5 w-3.5" />
+                        )}
+                        {getChannel(selectedLead) === "Email" ? "Reply" : "Send"}
                       </button>
                     </div>
                   </div>
