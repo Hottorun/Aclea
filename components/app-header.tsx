@@ -59,11 +59,11 @@ export function AppHeader({ onRefresh, isRefreshing, user, leads = [], navigatio
   const handleLogoClick = () => {
     if (navigationGuard) {
       navigationGuard("/dashboard", () => {
-        setIsLoading(true)
+        if (pathname !== "/dashboard") setIsLoading(true)
         router.push("/dashboard")
       })
     } else {
-      setIsLoading(true)
+      if (pathname !== "/dashboard") setIsLoading(true)
       router.push("/dashboard")
     }
   }
