@@ -67,9 +67,22 @@ export async function PATCH(request: Request) {
 
     const body = await request.json()
     const profile = await updateUserProfile(user.id, body)
-    
+
     if (!profile) {
       return NextResponse.json({ error: "Failed to update profile" }, { status: 500 })
+    }
+
+    // Keep the auth cookie in sync so GET /api/auth returns the updated name
+    if (body.name) {
+      const cookieStore = await cookies()
+      const updatedUser: User = { ...user, name: body.name }
+      cookieStore.set("auth_token", JSON.stringify(updatedUser), {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        maxAge: 60 * 60 * 24 * 7,
+        path: "/",
+      })
     }
 
     return NextResponse.json(profile)
