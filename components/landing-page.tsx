@@ -13,6 +13,7 @@ import {
   Star, Clock, Inbox,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { AcleaLogo } from '@/components/aclea-logo'
 
 // ─── Translations ────────────────────────────────────────────────────────────
 
@@ -220,11 +221,8 @@ function Nav() {
       >
         <div className="relative flex items-center justify-between">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="flex size-8 items-center justify-center rounded-xl bg-[#0B0B16] group-hover:bg-[#1a1a30] transition-colors">
-              <Zap className="size-4 text-white" strokeWidth={2.5} />
-            </div>
-            <span className="text-[15px] font-semibold text-[#0B0B16] tracking-tight">Aclea</span>
+          <Link href="/">
+            <AcleaLogo markSize={24} fontSize={20} gap={9} />
           </Link>
 
           {/* Desktop links */}
@@ -888,11 +886,8 @@ function Footer() {
         <div className="grid gap-10 md:grid-cols-[1fr_auto_auto_auto]">
           {/* Brand */}
           <div>
-            <Link href="/" className="flex items-center gap-2.5 mb-4">
-              <div className="flex size-8 items-center justify-center rounded-xl bg-[#0B0B16]">
-                <Zap className="size-4 text-white" strokeWidth={2.5} />
-              </div>
-              <span className="text-[15px] font-semibold text-[#0B0B16] tracking-tight">Aclea</span>
+            <Link href="/" className="mb-4 inline-block">
+              <AcleaLogo markSize={24} fontSize={20} gap={9} />
             </Link>
             <p className="text-sm text-[#9AA0B5] leading-relaxed max-w-[220px]">{t.footer.tagline}</p>
           </div>
