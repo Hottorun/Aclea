@@ -1,5 +1,5 @@
 import { createClient, SupabaseClient } from "@supabase/supabase-js"
-import type { Lead, AppSettings, TeamSettings, UserSettings, LeadStatus, Team, TeamMember, TeamRole, LeadSession, Message, CollectedData } from "./types"
+import type { Lead, AppSettings, TeamSettings, UserSettings, LeadStatus, Team, TeamMember, TeamRole, LeadSession, Message, CollectedData, TeamConfig } from "./types"
 import bcrypt from "bcryptjs"
 
 let supabase: SupabaseClient | null = null
@@ -1326,4 +1326,57 @@ export async function updateUserProfile(userId: string, updates: Partial<UserPro
 
   // Fetch and return updated profile
   return getUserProfile(userId)
+}
+
+export async function getTeamConfig(teamId: string): Promise<TeamConfig | null> {
+  const client = getSupabase()
+  if (!client) return null
+
+  const { data, error } = await client
+    .from("teams_configs")
+    .select("*")
+    .eq("teams_id", teamId)
+    .single()
+
+  if (error || !data) return null
+
+  return {
+    id: data.id,
+    teamsId: data.teams_id,
+    requiredFields: data.required_fields || [],
+    qualificationRules: data.qualification_rules || {},
+    toneOfVoice: data.tone_of_voice || "professional",
+    aiSystemPrompt: data.ai_system_prompt || "",
+    flowType: data.flow_type || "qualification",
+  }
+}
+
+export async function updateTeamConfig(teamId: string, config: Partial<TeamConfig>): Promise<TeamConfig | null> {
+  const client = getSupabase()
+  if (!client) return null
+
+  const { data, error } = await client
+    .from("teams_configs")
+    .upsert({
+      teams_id: teamId,
+      ...(config.requiredFields !== undefined && { required_fields: config.requiredFields }),
+      ...(config.qualificationRules !== undefined && { qualification_rules: config.qualificationRules }),
+      ...(config.toneOfVoice !== undefined && { tone_of_voice: config.toneOfVoice }),
+      ...(config.aiSystemPrompt !== undefined && { ai_system_prompt: config.aiSystemPrompt }),
+      ...(config.flowType !== undefined && { flow_type: config.flowType }),
+    }, { onConflict: "teams_id" })
+    .select()
+    .single()
+
+  if (error || !data) return null
+
+  return {
+    id: data.id,
+    teamsId: data.teams_id,
+    requiredFields: data.required_fields || [],
+    qualificationRules: data.qualification_rules || {},
+    toneOfVoice: data.tone_of_voice || "professional",
+    aiSystemPrompt: data.ai_system_prompt || "",
+    flowType: data.flow_type || "qualification",
+  }
 }

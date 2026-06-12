@@ -195,3 +195,13 @@ export interface SendMessageResponse {
   message: string
   phone: string
 }
+
+export interface TeamConfig {
+  id?: string
+  teamsId: string
+  requiredFields: string[]
+  qualificationRules: Record<string, unknown>
+  toneOfVoice: string
+  aiSystemPrompt: string
+  flowType: string
+}

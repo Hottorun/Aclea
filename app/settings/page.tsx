@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { User, Bell, Shield, Database, Key, Moon, ChevronRight, ArrowLeft, Check, X, AlertTriangle, Bot, Loader2, Users, LogOut, Crown, UserPlus, UserMinus, Copy, Trash2 } from "lucide-react"
+import { User, Bell, Shield, Database, Key, Moon, ChevronRight, ArrowLeft, Check, X, AlertTriangle, Bot, Loader2, Users, LogOut, Crown, UserPlus, UserMinus, Copy, Trash2, Sliders } from "lucide-react"
 import { ThemeBackground } from "@/lib/use-theme-gradient"
 import { AppHeader } from "@/components/app-header"
 import { cn } from "@/lib/utils"
@@ -334,6 +334,7 @@ export default function Settings() {
       items: [
         { icon: Bell, label: "Notifications", description: "Email and push alerts", action: () => router.push("/settings/notifications") },
         { icon: Bot, label: "AI Settings", description: "AI configuration", action: () => router.push("/settings/ai") },
+        { icon: Sliders, label: "AI Qualification", description: "Chatbot prompts, required fields", action: () => router.push("/settings/ai-config") },
       ],
     },
     {
