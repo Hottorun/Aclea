@@ -141,7 +141,7 @@ const t = {
       { label: 'Imprint', href: '/imprint' },
     ],
     rights: 'All rights reserved.',
-    status: 'All systems operational',
+    status: 'Non-commercial demo project',
   },
 }
 
@@ -934,7 +934,7 @@ function Footer() {
             <span>{t.footer.status}</span>
           </div>
           <p className="text-sm text-[#C4CAD6]">
-            &copy; {new Date().getFullYear()} Aclea GmbH. {t.footer.rights}
+            &copy; {new Date().getFullYear()} Aclea. {t.footer.rights}
           </p>
         </div>
       </div>

@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Mail, Phone, MapPin, Send, Check } from 'lucide-react'
+import { legal } from '@/lib/legal'
 
 const S = {
   page: { minHeight: '100vh', backgroundColor: '#fafafa', color: '#111111' } as const,
@@ -96,9 +97,9 @@ export default function ContactPage() {
           {/* Contact Info */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             {[
-              { icon: Mail, label: 'Email', value: 'contact@aclea.de', href: 'mailto:contact@aclea.de' },
-              { icon: Phone, label: 'Phone', value: '+49 (0) 30 123 456 78', href: null },
-              { icon: MapPin, label: 'Address', value: 'Berlin, Germany', href: null },
+              { icon: Mail, label: 'Email', value: legal.email, href: `mailto:${legal.email}` },
+              ...(legal.phone ? [{ icon: Phone, label: 'Phone', value: legal.phone, href: null }] : []),
+              { icon: MapPin, label: 'Location', value: legal.city, href: null },
             ].map(({ icon: Icon, label, value, href }) => (
               <div key={label} style={{ ...S.card, display: 'flex', alignItems: 'center', gap: '1rem', padding: '1rem' }}>
                 <div style={{ width: '2.5rem', height: '2.5rem', borderRadius: '0.5rem', backgroundColor: '#f5f5f5', border: '1px solid #e5e5e5', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>

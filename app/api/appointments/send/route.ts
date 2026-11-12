@@ -86,7 +86,7 @@ export async function POST(request: Request) {
               <p style="color: #6b7280; font-size: 14px; line-height: 1.6;">We look forward to speaking with you. If you need to reschedule, please reply to this email.</p>
               <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;">
               <p style="color: #9ca3af; font-size: 12px; text-align: center;">
-                © ${new Date().getFullYear()} Aclea GmbH. All rights reserved.
+                © ${new Date().getFullYear()} Aclea. All rights reserved.
               </p>
             </div>
           `,

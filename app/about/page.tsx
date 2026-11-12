@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { ArrowLeft, Users, Target, Zap, Shield, Globe, Mail, Phone, MapPin } from 'lucide-react'
+import { legal } from '@/lib/legal'
 
 const S = {
   page: { minHeight: '100vh', backgroundColor: '#fafafa', color: '#111111', fontFamily: 'inherit' } as const,
@@ -101,9 +102,9 @@ export default function AboutPage() {
             <h2 style={{ fontSize: '1.5rem', fontWeight: 600, marginBottom: '2rem', textAlign: 'center' }}>Get in Touch</h2>
             <div style={{ ...S.card, display: 'flex', flexWrap: 'wrap' as const, gap: '2rem', justifyContent: 'center', alignItems: 'center' }}>
               {[
-                { icon: Mail, text: 'contact@aclea.de' },
-                { icon: Phone, text: '+49 (0) 30 123 456 78' },
-                { icon: MapPin, text: 'Berlin, Deutschland' },
+                { icon: Mail, text: legal.email },
+                ...(legal.phone ? [{ icon: Phone, text: legal.phone }] : []),
+                { icon: MapPin, text: legal.city },
               ].map(({ icon: Icon, text }) => (
                 <div key={text} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: '#737373' }}>
                   <Icon style={{ width: '1.25rem', height: '1.25rem', color: '#111111' }} />
@@ -117,7 +118,7 @@ export default function AboutPage() {
 
       <footer style={S.footer}>
         <div style={{ maxWidth: '56rem', margin: '0 auto', textAlign: 'center', color: '#a3a3a3', fontSize: '0.875rem' }}>
-          &copy; {new Date().getFullYear()} Aclea GmbH. All rights reserved.
+          &copy; {new Date().getFullYear()} Aclea. All rights reserved.
         </div>
       </footer>
     </div>

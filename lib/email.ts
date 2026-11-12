@@ -1,4 +1,5 @@
 import { Resend } from "resend"
+import { legal } from "@/lib/legal"
 
 // Lazily initialise so a missing key doesn't crash modules that import this
 // file in environments where email is not needed (e.g. local dev without .env)
@@ -70,8 +71,7 @@ export async function sendWelcomeEmail(email: string, name: string) {
       </p>
       <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;">
       <p style="color: #9ca3af; font-size: 12px; text-align: center;">
-        © ${new Date().getFullYear()} Aclea GmbH. All rights reserved.<br>
-        Berlin, Deutschland
+        © ${new Date().getFullYear()} Aclea. All rights reserved.
       </p>
     </div>
   `
@@ -102,8 +102,7 @@ export async function sendPasswordResetEmail(email: string, resetToken: string) 
       <p style="color: #9ca3af; font-size: 14px; margin-top: 24px;">If you didn't request a password reset, please ignore this email or contact support if you have concerns.</p>
       <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;">
       <p style="color: #9ca3af; font-size: 12px; text-align: center;">
-        © ${new Date().getFullYear()} Aclea GmbH. All rights reserved.<br>
-        Berlin, Deutschland
+        © ${new Date().getFullYear()} Aclea. All rights reserved.
       </p>
     </div>
   `
@@ -235,8 +234,7 @@ export async function sendPasswordChangedNotification(email: string, name: strin
       </div>
       <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;">
       <p style="color: #9ca3af; font-size: 12px; text-align: center;">
-        © ${new Date().getFullYear()} Aclea GmbH. All rights reserved.<br>
-        Berlin, Deutschland
+        © ${new Date().getFullYear()} Aclea. All rights reserved.
       </p>
     </div>
   `
@@ -270,10 +268,9 @@ export async function sendContactFormEmail(data: { name: string; email: string; 
       <p style="color: #9ca3af; font-size: 12px;">Reply directly to this email to respond to ${name}.</p>
       <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;">
       <p style="color: #9ca3af; font-size: 12px; text-align: center;">
-        © ${new Date().getFullYear()} Aclea GmbH. All rights reserved.<br>
-        Berlin, Deutschland
+        © ${new Date().getFullYear()} Aclea. All rights reserved.
       </p>
     </div>
   `
-  return sendEmail({ to: "contact@aclea.de", subject, html })
+  return sendEmail({ to: legal.email, subject, html })
 }

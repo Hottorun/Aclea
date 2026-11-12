@@ -157,7 +157,7 @@ export default function SolutionPage() {
 
       <footer style={S.footer}>
         <div style={{ maxWidth: '72rem', margin: '0 auto', textAlign: 'center', color: '#a3a3a3', fontSize: '0.875rem' }}>
-          &copy; {new Date().getFullYear()} Aclea GmbH. All rights reserved.
+          &copy; {new Date().getFullYear()} Aclea. All rights reserved.
         </div>
       </footer>
     </div>
